@@ -3,15 +3,20 @@ const uuid = require('uuid');
 const engine = require('../utils/engine');
 const { resetContext } = require('../utils/context');
 
+
+
+
 router.post('/submit', async (req, res, next) => {
   const submissionId = uuid.v4();
+  
   console.log(req.body);
-  const result = await engine(req.body.code, req.body.notebookid);
+  const result = await engine(submissionId, req.body.code, req.body.notebookid, req.body.cellid);
 
   console.log(`result 🍉: `, result)
 
   res.json({
     message: 'Hello, submission!', submissionId,
+    submissionId,
     banana: 'banana',
     cheeseits: result
   });

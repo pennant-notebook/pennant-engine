@@ -1,0 +1,128 @@
+
+evalmachine.<anonymous>:1
+console.losg(y)
+             ^
+
+ReferenceError: y is not defined
+    at evalmachine.<anonymous>:1:14
+    at Script.runInContext (node:vm:140:12)
+    at Script.runInNewContext (node:vm:145:17)
+    at Object.runInNewContext (node:vm:299:38)
+    at engine (/Users/miri909/pennant-protos/pennant-engine-proto/server/src/utils/engine.js:20:8)
+    at /Users/miri909/pennant-protos/pennant-engine-proto/server/src/routes/api.js:9:24
+    at Layer.handle [as handle_request] (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/layer.js:95:5)
+    at next (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/route.js:144:13)
+    at Route.dispatch (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/route.js:114:3)
+    at Layer.handle [as handle_request] (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/layer.js:95:5)
+
+evalmachine.<anonymous>:1
+console.losg(y); {{{{
+                     
+
+SyntaxError: Unexpected end of input
+    at new Script (node:vm:100:7)
+    at createScript (node:vm:258:10)
+    at Object.runInNewContext (node:vm:299:10)
+    at engine (/Users/miri909/pennant-protos/pennant-engine-proto/server/src/utils/engine.js:20:8)
+    at /Users/miri909/pennant-protos/pennant-engine-proto/server/src/routes/api.js:9:24
+    at Layer.handle [as handle_request] (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/layer.js:95:5)
+    at next (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/route.js:144:13)
+    at Route.dispatch (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/route.js:114:3)
+    at Layer.handle [as handle_request] (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/layer.js:95:5)
+    at /Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/index.js:284:15
+
+evalmachine.<anonymous>:1
+console.losg(y); {{{{
+                     
+
+SyntaxError: Unexpected end of input
+    at new Script (node:vm:100:7)
+    at createScript (node:vm:258:10)
+    at Object.runInNewContext (node:vm:299:10)
+    at engine (/Users/miri909/pennant-protos/pennant-engine-proto/server/src/utils/engine.js:20:8)
+    at /Users/miri909/pennant-protos/pennant-engine-proto/server/src/routes/api.js:9:24
+    at Layer.handle [as handle_request] (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/layer.js:95:5)
+    at next (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/route.js:144:13)
+    at Route.dispatch (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/route.js:114:3)
+    at Layer.handle [as handle_request] (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/layer.js:95:5)
+    at /Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/index.js:284:15
+2
+evalmachine.<anonymous>:1
+console.log(5555555) {}{{{
+                     ^
+
+SyntaxError: Unexpected token '{'
+    at new Script (node:vm:100:7)
+    at createScript (node:vm:258:10)
+    at Object.runInNewContext (node:vm:299:10)
+    at engine (/Users/miri909/pennant-protos/pennant-engine-proto/server/src/utils/engine.js:20:8)
+    at /Users/miri909/pennant-protos/pennant-engine-proto/server/src/routes/api.js:9:24
+    at Layer.handle [as handle_request] (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/layer.js:95:5)
+    at next (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/route.js:144:13)
+    at Route.dispatch (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/route.js:114:3)
+    at Layer.handle [as handle_request] (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/layer.js:95:5)
+    at /Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/index.js:284:15
+/* CELL ID DELIMITER */2/* CELL ID DELIMITER */
+evalmachine.<anonymous>:1
+console.log(5555555) {}{{{
+                     ^
+
+SyntaxError: Unexpected token '{'
+    at new Script (node:vm:100:7)
+    at createScript (node:vm:258:10)
+    at Object.runInNewContext (node:vm:299:10)
+    at engine (/Users/miri909/pennant-protos/pennant-engine-proto/server/src/utils/engine.js:21:8)
+    at /Users/miri909/pennant-protos/pennant-engine-proto/server/src/routes/api.js:9:24
+    at Layer.handle [as handle_request] (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/layer.js:95:5)
+    at next (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/route.js:144:13)
+    at Route.dispatch (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/route.js:114:3)
+    at Layer.handle [as handle_request] (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/layer.js:95:5)
+    at /Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/index.js:284:15
+CELL_ID: 2
+evalmachine.<anonymous>:1
+console.log(5555555) {}{{{
+                     ^
+
+SyntaxError: Unexpected token '{'
+    at new Script (node:vm:100:7)
+    at createScript (node:vm:258:10)
+    at Object.runInNewContext (node:vm:299:10)
+    at engine (/Users/miri909/pennant-protos/pennant-engine-proto/server/src/utils/engine.js:20:8)
+    at /Users/miri909/pennant-protos/pennant-engine-proto/server/src/routes/api.js:9:24
+    at Layer.handle [as handle_request] (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/layer.js:95:5)
+    at next (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/route.js:144:13)
+    at Route.dispatch (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/route.js:114:3)
+    at Layer.handle [as handle_request] (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/layer.js:95:5)
+    at /Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/index.js:284:15
+
+evalmachine.<anonymous>:1
+console.log(5555555) {}{{{
+                     ^
+
+SyntaxError: Unexpected token '{'
+    at new Script (node:vm:100:7)
+    at createScript (node:vm:258:10)
+    at Object.runInNewContext (node:vm:299:10)
+    at engine (/Users/miri909/pennant-protos/pennant-engine-proto/server/src/utils/engine.js:27:8)
+    at /Users/miri909/pennant-protos/pennant-engine-proto/server/src/routes/api.js:13:24
+    at Layer.handle [as handle_request] (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/layer.js:95:5)
+    at next (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/route.js:144:13)
+    at Route.dispatch (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/route.js:114:3)
+    at Layer.handle [as handle_request] (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/layer.js:95:5)
+    at /Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/index.js:284:15
+
+evalmachine.<anonymous>:1
+console.log(5555555) {}{{{
+                     ^
+
+SyntaxError: Unexpected token '{'
+    at new Script (node:vm:100:7)
+    at createScript (node:vm:258:10)
+    at Object.runInNewContext (node:vm:299:10)
+    at engine (/Users/miri909/pennant-protos/pennant-engine-proto/server/src/utils/engine.js:27:8)
+    at /Users/miri909/pennant-protos/pennant-engine-proto/server/src/routes/api.js:13:24
+    at Layer.handle [as handle_request] (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/layer.js:95:5)
+    at next (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/route.js:144:13)
+    at Route.dispatch (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/route.js:114:3)
+    at Layer.handle [as handle_request] (/Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/layer.js:95:5)
+    at /Users/miri909/pennant-protos/pennant-engine-proto/server/node_modules/express/lib/router/index.js:284:15

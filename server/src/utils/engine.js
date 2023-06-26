@@ -5,16 +5,28 @@ const path = require('path');
 const { loadContext, updateContextWrapper } = require('./context');
 
 
-const logFileStream = fs.createWriteStream(path.join(__dirname, 'log.txt'), { flags: 'a' });
 
 
-const customConsole = new Console(logFileStream, logFileStream);
+const createSubmissionOutputFile = (submissionId) => {
+  const outputFilePath = path.join(__dirname, '/temp/', `output-${submissionId}.txt`);
+  const outputFileStream = fs.createWriteStream(outputFilePath, { flags: 'a' });
+  return outputFileStream;
+}
 
-const engine = (code, notebookId) => {
+
+const engine = (submissionId, code, notebookId, cellId) => {
+  const logFileStream  = createSubmissionOutputFile(submissionId);
+  const customConsole = new Console(logFileStream, logFileStream);
   const context = loadContext(notebookId);
   context.console = customConsole;
-  updateContextWrapper(notebookId);
-  vm.runInNewContext(code, context);
+  console.log(`__dirname: `, __dirname)
+
+  try {
+    vm.runInNewContext(code, context);
+    updateContextWrapper(notebookId);
+  } catch (error) {
+    logFileStream.write(`\n${error.stack}\n`);
+  }
 }
 
 
