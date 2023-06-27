@@ -49,6 +49,7 @@ const executeCode = async (submissionId, cellId, code, notebookId) => {
     await vm.runInNewContext(code, context);
     updateContextWrapper(notebookId);
   } catch (error) {
+    arr.push(error);
     isSyntaxOrRuntimeError = true;
   } finally {
     writableStream.end();
