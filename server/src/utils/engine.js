@@ -32,7 +32,7 @@ const executeCode = async (submissionId, cellId, code, notebookId) => {
   };
   util.inherits(EchoStream, stream.Writable); // step 1
   EchoStream.prototype._write = function (chunk, encoding, done) { // step 3
-    console.log(chunk.toString());
+    // console.log(chunk.toString());
     arr.push(chunk.toString())
     done();
   }
