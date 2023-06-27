@@ -28,6 +28,7 @@ const loadContext = (notebookId) => {
     contextStore[notebookId] = {
       active: true,
       lastUpdate: Date.now(),
+      context: {},
     }
   };
 
@@ -35,7 +36,6 @@ const loadContext = (notebookId) => {
     contextStore[notebookId].active = true;
     contextStore[notebookId].context = {};
   }
-
   return contextStore[notebookId].context;
 }
 
