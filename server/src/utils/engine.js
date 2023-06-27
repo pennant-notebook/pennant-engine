@@ -1,13 +1,13 @@
 const vm = require('vm');
 const { Console } = require('console');
-const fs = require('fs');
-const path = require('path');
+// const fs = require('fs');
+// const path = require('path');
 const { loadContext, updateContextWrapper } = require('./context');
 const { updateSubmissionOutput } = require('./submissionOutput');
 
-const getPath = (submissionId, cellId) => {
-  return path.join(__dirname, '/temp/', `output-${submissionId}-${cellId}.txt`);
-}
+// const getPath = (submissionId, cellId) => {
+//   return path.join(__dirname, '/temp/', `output-${submissionId}-${cellId}.txt`);
+// }
 
 const engine = async (submissionId, cells, notebookId) => {
   for (let cell of cells) {
@@ -32,7 +32,6 @@ const executeCode = async (submissionId, cellId, code, notebookId) => {
   };
   util.inherits(EchoStream, stream.Writable); // step 1
   EchoStream.prototype._write = function (chunk, encoding, done) { // step 3
-    // console.log(chunk.toString());
     arr.push(chunk.toString())
     done();
   }
@@ -49,14 +48,14 @@ const executeCode = async (submissionId, cellId, code, notebookId) => {
     await vm.runInNewContext(code, context);
     updateContextWrapper(notebookId);
   } catch (error) {
-    arr.push(error);
+    arr.push(String(error));
     isSyntaxOrRuntimeError = true;
   } finally {
     writableStream.end();
     console.log('arr', arr)
+    updateSubmissionOutput(submissionId, cellId, isSyntaxOrRuntimeError, arr[0]);
   }
 }
-
 
 
 module.exports = engine;
