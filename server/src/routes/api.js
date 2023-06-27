@@ -2,34 +2,32 @@ const router = require('express').Router();
 const uuid = require('uuid');
 const engine = require('../utils/engine');
 const { resetContext } = require('../utils/context');
-
-
-
+const { initializeSubmissionOutput, getSubmissionOutput } = require('../utils/submissionOutput');
 
 router.post('/submit', async (req, res, next) => {
-  const submissionId = uuid.v4();
-  
-  console.log(req.body);
-  const result = await engine(submissionId, req.body.code, req.body.notebookid, req.body.cellid);
+  const { notebookId, cells } = req.body;
+  const {cellId, code}  = cells[0];
 
-  console.log(`result 🍉: `, result)
+  const cellIds = cells.map(cell => cell.cellId);
+
+  const submissionId = uuid.v4();
+
+  initializeSubmissionOutput(submissionId, cellIds);
+
+  engine(submissionId, cells, notebookId);
 
   res.json({
-    message: 'Hello, submission!', submissionId,
+    message: 'ok',
     submissionId,
-    banana: 'banana',
-    cheeseits: result
   });
 });
 
-router.post('/submit/multiple', (req, res, next) => {
-  const submissionId = uuid.v4();
-  console.log(req.body);
-  res.json({ message: 'Hello, multiple submission!', submissionId });
-});
+
 
 router.get('/status/:submissionId', (req, res, next) => {
-  res.json({ message: 'Hello, status!' });
+  const { submissionId } = req.params;
+  const result = getSubmissionOutput(submissionId);
+  res.json(result);
 });
 
 
@@ -38,7 +36,7 @@ router.get('/status/:notebookId', (req, res, next) => { });
 
 // reset context object
 
-router.post('/reset/:notebookId', (req, res, next) => { 
+router.post('/reset/:notebookId', (req, res, next) => {
   resetContext(req.params.notebookId);
   res.json({ message: 'Context reset!' });
 });

@@ -7,5 +7,4 @@ dist/
 .DS_Store
 Thumbs.db
 coverage/
-temp/
-server/src/utils/temp
+server/src/utils/temp/*
