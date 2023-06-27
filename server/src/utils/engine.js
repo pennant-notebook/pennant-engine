@@ -23,10 +23,23 @@ const engine = async (submissionId, cells, notebookId) => {
 // we might want to reset context when the code raises errors.
 
 const executeCode = async (submissionId, cellId, code, notebookId) => {
-  const execOutputFile = getPath(submissionId, cellId);
-  const logFileStream = fs.createWriteStream(execOutputFile, { flags: 'a' });
 
-  const customConsole = new Console(logFileStream, logFileStream);
+  const stream = require('stream'); 
+  var util = require('util');
+  const arr = [];
+  function EchoStream () { // step 2
+    stream.Writable.call(this);
+  };
+  util.inherits(EchoStream, stream.Writable); // step 1
+  EchoStream.prototype._write = function (chunk, encoding, done) { // step 3
+    console.log(chunk.toString());
+    arr.push(chunk.toString())
+    done();
+  }
+
+  var writableStream = new EchoStream(); 
+
+  const customConsole = new Console(writableStream, writableStream);
   const context = loadContext(notebookId);
   context.console = customConsole;
 
@@ -37,27 +50,10 @@ const executeCode = async (submissionId, cellId, code, notebookId) => {
     updateContextWrapper(notebookId);
   } catch (error) {
     isSyntaxOrRuntimeError = true;
-    await logFileStream.write(`\n${error.stack}\n`);
   } finally {
-    logFileStream.end();
+    writableStream.end();
+    console.log('arr', arr)
   }
-
-  fs.readFile(execOutputFile, 'utf8', (err, data) => {
-    if (err) {
-      console.error("file read error: ", err)
-      return
-    }
-
-    updateSubmissionOutput(submissionId, cellId, isSyntaxOrRuntimeError, data);
-    
-
-    fs.unlink(execOutputFile, (err) => {
-      if (err) {
-        console.error("file delete error: ", err)
-        return
-      }
-    })
-  });
 }
 
 
