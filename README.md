@@ -1,4 +1,3 @@
-# pennant-engine-proto
 # Dredd API
 **Last updated**: 6/28/23
 
@@ -89,3 +88,88 @@ Status code | Description
 400 | Bad request
 404 | Not found
 500 | Internal server error
+
+
+
+# Examples
+
+## POST /api/submit
+**Returns**: 200 OK and `submissionId` (token)
+
+Initiates submission. Starts code execution process. You can send one or many cells as an array value. Cells will be executed in order.
+
+Sending one:
+```json
+{
+	"notebookId": "111", // from FE
+	"cells": [
+    	{
+        	"cellId": "2", // From frontend
+        	"code": "console.log('hi judah!')"
+    	}
+	],
+	"timeout": 5
+}
+```
+
+Sending many:
+```json
+{
+	"notebookId": "111",
+	"cells": [  
+    	{
+        	"cellId": "3",
+        	"code": "const name = 'Bob'"
+    	},
+    	{
+        	"cellId": "4",
+        	"code": "const age = 30"
+    	},
+    	{
+        	"cellId": "5",
+        	"code": "console.log(name, ' is ', age, ' years old')"
+    	}
+	],
+	"timeout": 5
+}
+```
+
+
+## GET /api/status/:sessionId
+**Returns**: 200 OK and payload of results. `status` field may be "pending", "success" or "error". Note that error refers to an exception being raised by a cell execution; not a server-side issue. Such errors will be flagged using HTTP status codes.
+
+```json
+{
+   "submissionId": "0c5796d7-c8fb-4b4c-a13d-9ebedc914551",
+   "status": "success",
+   "requestOrder": [
+       [
+           "3",
+           "4",
+           "5"
+       ]
+   ],
+   "cellsExecuted": [
+       "3",
+       "4",
+       "5"
+   ],
+   "results": [
+       {
+           "cellId": "3",
+           "type": "output",
+           "output": ""
+       },
+       {
+           "cellId": "4",
+           "type": "output",
+           "output": ""
+       },
+       {
+           "cellId": "5",
+           "type": "output",
+           "output": "Bob  is  30  years old\n"
+       }
+   ]
+}
+```
