@@ -53,7 +53,7 @@ const executeCode = async (submissionId, cellId, code, notebookId) => {
   } finally {
     writableStream.end();
     console.log('arr', arr)
-    updateSubmissionOutput(submissionId, cellId, isSyntaxOrRuntimeError, arr[0]);
+    updateSubmissionOutput(submissionId, cellId, isSyntaxOrRuntimeError, arr.join(''));
   }
 }
 
