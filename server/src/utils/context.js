@@ -14,6 +14,7 @@ should FE have an active context indicator?
 
 Take in a notebook.
 */
+const main = require("./engine");
 
 const contextStore = {
   "111": {
@@ -28,6 +29,7 @@ const loadContext = (notebookId) => {
     contextStore[notebookId] = {
       active: true,
       lastUpdate: Date.now(),
+      context: {},
     }
   };
 
@@ -35,13 +37,16 @@ const loadContext = (notebookId) => {
     contextStore[notebookId].active = true;
     contextStore[notebookId].context = {};
   }
-
   return contextStore[notebookId].context;
 }
 
 const resetContext = (notebookId) => {
   contextStore[notebookId].active = false;
   contextStore[notebookId].context = {};
+  //resets the in-memory state of context in engine.js
+  for (var member in main.variableMap) delete main.variableMap[member];
+  for (var member in main.cellsRun) delete main.cellsRun[member];
+  for (var member in main.flagged) delete main.flagged[member];
 }
 
 const updateContextWrapper = (notebookId) => {
