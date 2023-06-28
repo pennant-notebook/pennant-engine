@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const uuid = require('uuid');
-const engine = require('../utils/engine');
+const {engine} = require('../utils/engine');
 const { resetContext } = require('../utils/context');
 const { initializeSubmissionOutput, getSubmissionOutput } = require('../utils/submissionOutput');
 
