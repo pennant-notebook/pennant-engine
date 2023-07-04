@@ -1,4 +1,5 @@
 # Dredd API
+Latest stable version is branch **v0.1.0**
 **Last updated**: 6/28/23
 
 ## Base URL
