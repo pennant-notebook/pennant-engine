@@ -101,7 +101,8 @@ const amqp = require("amqp-connection-manager");
 const { engine } = require('../engine.js')
 
 const QUEUE_NAME = 'jobs'
-const connection = amqp.connect(['amqp://localhost:5672']);
+// const connection = amqp.connect(['amqp://localhost:5672']);
+const connection = amqp.connect(['amqp://rabbitmq:5672']);
 
 connection.on('connect', function () {
     console.log('Connected on back!');

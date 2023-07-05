@@ -71,7 +71,8 @@ const QUEUE_NAME = 'jobs'
 var amqp = require('amqp-connection-manager');
 
 // Create a new connection manager
-var connection = amqp.connect(['amqp://localhost:5672'])
+// var connection = amqp.connect(['amqp://localhost:5672'])
+var connection = amqp.connect(['amqp://rabbitmq:5672'])
 // const delay = async () => {
 // await setTimeout(()=> {console.log('didnt connect')}, "3000")
 // };

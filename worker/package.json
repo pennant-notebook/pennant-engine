@@ -5,7 +5,8 @@
     "main": "app/config/rabbitmq.js",
     "scripts": {
       "test": "echo \"Error: no test specified\" && exit 1",
-      "dev": "npx nodemon app/config/rabbitmq.js"
+      "dev": "npx nodemon app/config/rabbitmq.js",
+      "start": "npx nodemon app/config/rabbitmq.js"
     },
     "keywords": [],
     "author": "",

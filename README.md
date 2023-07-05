@@ -1,3 +1,9 @@
+# Getting Started
+To start the app, 
+git clone this repository
+cd into this repository
+run the command `docker compose up --build` from the base of this repository
+
 # Dredd API
 The 1.0.0 branch implements the code execution service as an EDA. Endpoints have not changed.
 

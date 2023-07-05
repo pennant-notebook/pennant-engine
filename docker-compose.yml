@@ -1,0 +1,19 @@
+version: "2.3" #Use this version strictly
+services:
+  rabbitmq:
+    image: "rabbitmq"
+    restart: always
+  redis-server:
+    image: "redis"
+    restart: always
+  server:
+    build: ./server
+    restart: always
+    ports:
+      - "3002:3002"
+  worker:
+    build: ./worker
+    restart: always
+    # pids_limit: 60 # Max number of processes running in thw container.
+    # cpus: 1 # No of CPUs allocated
+    # mem_limit: 150M # Hard limit

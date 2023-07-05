@@ -82,9 +82,11 @@ const statusCheckHandler = async (req, res) => {
     let status = await getFromRedis(key);
     console.log('status', status)
     if (status === null || status === 'sent to queue') {
+      console.log('sent to queue')
       res.status(202).send({ "status": "pending" });
     }
     else if (status == 'Processing') {
+      console.log('processing')
       res.status(202).send({ "status": "pending" });
     }
     else {
