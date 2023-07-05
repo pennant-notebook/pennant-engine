@@ -1,5 +1,6 @@
 # Dredd API
-**Last updated**: 6/28/23
+**Last updated**: 7/05/23
+v0.1.0 is hosted at engine.trypennant.com; API endpoints have not changed
 
 ## Base URL
 The default base URL for all API endpoints is: `http://localhost:3002/api`
