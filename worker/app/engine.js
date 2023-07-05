@@ -5,13 +5,13 @@ const { client } = require("./config/redis.js");
 const { Console } = require('console');
 const { loadContext, updateContextWrapper } = require('./utils/context.js');
 const { updateSubmissionOutput, initializeSubmissionOutput, getSubmissionOutput } = require('./utils/submissionOutput.js');
-const {compileFrontendInput} = require("./utils/compileFrontendInput.js");
+const { compileFrontendInput } = require("./utils/compileFrontendInput.js");
 //added
-const {connect} = require("./config/rabbitmq.js");
+const { connect } = require("./config/rabbitmq.js");
 //above
 
 // const engine = async (submissionId, cells, notebookId) => {
-  //added
+//added
 const engine = async (apiBody, ch, msg) => {
   console.log('apiBody', apiBody)
   //changed all notebookId and to apiBody.notebookId, all submissionId to apiBody.folder
@@ -20,22 +20,22 @@ const engine = async (apiBody, ch, msg) => {
   //above
   console.log('engineProcessing')
   //////added
-  //ADD HERE
+  initializeSubmissionOutput(apiBody.folder, ...apiBody.cells)
+  ch.ack(msg);
   //////above
   //above
-  for (let cell of apiBody.cells) {    
+  for (let cell of apiBody.cells) {
     try {
       // connect();
       let compiler = compileFrontendInput(cell, apiBody.notebookId);
       if (compiler === 'broken') break;
-    // executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
-    let result = executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
-    //added
-    //////BUG HERE
-    // client.setex(apiBody.folder.toString(), 3600, JSON.stringify(result));
-   ////////BUG ABOVE
-    ch.ack(msg);
-    //above
+      // executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
+      let result = executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
+      //added
+      //////BUG HERE
+      // client.setex(apiBody.folder.toString(), 3600, JSON.stringify(result));
+      ////////BUG ABOVE
+      //above
     } catch (error) {
       console.error("running cells raised an error: ", error);
       break;
@@ -45,10 +45,10 @@ const engine = async (apiBody, ch, msg) => {
 
 const executeCode = async (submissionId, cellId, code, notebookId) => {
   console.log('submissionId', submissionId)
-  const stream = require('stream'); 
+  const stream = require('stream');
   var util = require('util');
   const arr = [];
-  function EchoStream () { // step 2
+  function EchoStream() { // step 2
     stream.Writable.call(this);
   };
   util.inherits(EchoStream, stream.Writable); // step 1
@@ -57,7 +57,7 @@ const executeCode = async (submissionId, cellId, code, notebookId) => {
     done();
   }
 
-  var writableStream = new EchoStream(); 
+  var writableStream = new EchoStream();
 
   const customConsole = new Console(writableStream, writableStream);
   const context = loadContext(notebookId);
@@ -82,6 +82,6 @@ const executeCode = async (submissionId, cellId, code, notebookId) => {
 
 
 
-module.exports = {engine};
+module.exports = { engine };
 
 

@@ -16,11 +16,12 @@ const successResponse = (data) => {
         status: "ok",
         data: data
     });
-    return {
-        status: "ok",
-        data: data,
-        submissionId: data.folder,
-    }
+    return data;
+    // return {
+    //     status: "ok",
+    //     data: data,
+    //     submissionId: data.folder,
+    // }
 }
 
 const getFromRedis = (key) => {
@@ -32,7 +33,6 @@ const getFromRedis = (key) => {
             } else {
                 resolve(data);
             }
-
         });
     })
 }
