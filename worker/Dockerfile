@@ -1,15 +1,11 @@
-FROM ubuntu:20.04
-RUN apt-get update -y
-RUN apt-get install curl vim sudo build-essential -y
-RUN curl -sL https://deb.nodesource.com/setup_20.x | bash
-RUN apt-get install nodejs -y
-RUN node -v
-RUN npm -v
+FROM node:14-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
 
 COPY . .
-RUN mkdir temp
-RUN chmod 700  /
-RUN chmod 755 -R temp/
-RUN adduser --disabled-password --gecos "" judge
-RUN cd app && npm install
-CMD cd .. &&  npm run dev
+
+CMD ["npm", "start"]

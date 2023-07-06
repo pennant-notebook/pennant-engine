@@ -4,7 +4,9 @@ const client = redis.createClient({
 	legacyMode: true,
 	socket: {
 	// host: "127.0.0.1",
-	host: "redis-server",
+	// host: "redis-server",
+  // ! When running server on host machine, use 127.0.0.1
+	host: "127.0.0.1",
 	port: 6379,
 	}
 });
