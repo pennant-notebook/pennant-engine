@@ -2,7 +2,9 @@
 To start the app, 
 git clone this repository
 cd into this repository
+run the command `docker network create dredd-network --driver bridge` if network does not exist
 run the command `docker compose up --build` from the base of this repository
+run the server on host with `npm run start`
 
 # Dredd API
 The 1.0.0 branch implements the code execution service as an EDA. Endpoints have not changed.
