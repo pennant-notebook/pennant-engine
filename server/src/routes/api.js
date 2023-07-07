@@ -12,12 +12,105 @@ const { errorResponse, successResponse, getFromRedis } = require('../utils/respo
 const { createTimestamp, exceedsTimeout } = require('../utils/executionTimeout.js');
 //above
 
+const activeNotebooks = {}
+let fileCount = 10;
+let workerCount = 10;
+let portCount = 3014;
+// Import Modules
+const fs = require('fs');
+const child_process = require('child_process');
+
+// Create Interface
+var interface = {
+    
+    terminal: child_process.spawn('/bin/sh'),
+    // terminal: child_process.spawn('C:/bin/sh'),
+    handler: console.log,
+    send: (data) => {
+        interface.terminal.stdin.write(data + '\n');
+    },
+    cwd: () => {
+        let cwd = fs.readlinkSync('/proc/' + interface.terminal.pid + '/cwd');
+        interface.handler({ type: 'cwd', data: cwd });
+    }
+};
+
+// Handle Data
+interface.terminal.stdout.on('data', (buffer) => {
+    interface.handler({ type: 'data', data: buffer });
+});
+
+// Handle Error
+interface.terminal.stderr.on('data', (buffer) => {
+    interface.handler({ type: 'error', data: buffer });
+});
+
+// Handle Closure
+interface.terminal.on('close', () => {
+    interface.handler({ type: 'closure', data: null });
+});
+//!ABOVE
 
 router.post('/submit', async (req, res, next) => {
   //added
   try {
     console.log('reqbodyapiroute', req.body)
     const { notebookId, cells } = req.body;
+    if (!activeNotebooks[notebookId]) {
+      //! spin up another docker worker here
+      //! for this to work, you have to de-dockerize server and start with separate command?
+      //! or can start with the && to run simultaneously docker compose up --build && npm run dev (put the script in base of repo and link npm run dev to app.js in server)
+      //? this is where the docker run --name ${notebookId} landzbej/worker command goes
+      //? docker exec container-name tail /var/log/date.log
+      //how to run this command?
+      //!ADDED
+      interface.handler = (output) => {
+        let data = '';
+        if (output.data) data += ': ' + output.data.toString();
+        console.log("from the cmd line", output.type + data);
+    };
+      interface.send('cd ../worker')
+      interface.send('pwd');
+      //!1 CREATE FILE
+      interface.send(`touch docker-compose.${fileCount}.yml`);
+      function wait(ms){
+        var start = new Date().getTime();
+        var end = start;
+        while(end < start + ms) {
+          end = new Date().getTime();
+       }
+     }
+     console.log('before');
+      wait(10);  //7 seconds in milliseconds
+      console.log('after');
+      //!2 WRITE TO FILE
+interface.send(`echo "version: '2.3'
+
+services:
+  node-worker-${workerCount}:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - ${portCount}:${portCount}
+    networks:
+      - dredd-network
+
+networks:
+  dredd-network:
+    external:
+      name: dredd-network " >> docker-compose.${fileCount}.yml`);
+      console.log('before');
+      wait(10);  //7 seconds in milliseconds
+      console.log('after');
+     //!3 DOCKER COMPOSE UP
+     interface.send(`docker compose -f docker-compose.${fileCount}.yml up`);
+      console.log('before');
+      wait(10);  //7 seconds in milliseconds
+      console.log('after');
+      //!ABOVE
+      activeNotebooks[notebookId] = true;
+    }
     const data = { notebookId, cells }
     // data.folder = uuid.v4();
     data.folder = randomBytes(10).toString('hex');
@@ -25,6 +118,12 @@ router.post('/submit', async (req, res, next) => {
     createTimestamp(submissionId, 10000);
     console.log('apiRoutesReq.body', data)
     await sendMessage(data);
+    //!ADDED
+    fileCount += 1;
+    workerCount += 1;
+    portCount += 1;
+    console.log('fileCount', fileCount)
+    //!ABOVE
     // console.log('apiRoutesReq.body', data)
     // res.status(202).send(successResponse(`http://localhost:3002/api/results/${data.folder}`));
     res.status(202).json({

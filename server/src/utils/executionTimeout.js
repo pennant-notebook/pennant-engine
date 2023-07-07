@@ -1,5 +1,5 @@
 const submissionIdTimeCreated = {};
-const DEFAULT_TIMEOUT = 10000 // 10 seconds;
+const DEFAULT_TIMEOUT = 100000 // 10 seconds;
 
 const createTimestamp = (submissionId, timeout) => {
   submissionIdTimeCreated[submissionId] = {
