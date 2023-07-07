@@ -7,24 +7,30 @@ const { randomBytes } = require('crypto');
 // const { initializeSubmissionOutput, getSubmissionOutput } = require('../utils/submissionOutput');
 //above
 //added
-const { sendMessage } = require('../config/rabbitmq.js');
+const { sendMessage, queueExists, setupQueueForNoteBook } = require('../config/rabbitmq.js');
 const { errorResponse, successResponse, getFromRedis } = require('../utils/responses.js');
 const { createTimestamp, exceedsTimeout } = require('../utils/executionTimeout.js');
 //above
 
-
+// TODO - request body validation
 router.post('/submit', async (req, res, next) => {
   //added
   try {
+    // ! hardcoding notebookId for now
     console.log('reqbodyapiroute', req.body)
-    const { notebookId, cells } = req.body;
+    let { notebookId, cells } = req.body;
+    notebookId = 'jobs'
+    // ! test notebookId test1
+    notebookId = 'test1'
     const data = { notebookId, cells }
     // data.folder = uuid.v4();
     data.folder = randomBytes(10).toString('hex');
     const submissionId = data.folder.toString();
     createTimestamp(submissionId, 10000);
     console.log('apiRoutesReq.body', data)
-    await sendMessage(data);
+    // ! queue must always be asserted, even if it already exists
+    setupQueueForNoteBook(notebookId); 
+    await sendMessage(data, notebookId); 
     // console.log('apiRoutesReq.body', data)
     // res.status(202).send(successResponse(`http://localhost:3002/api/results/${data.folder}`));
     res.status(202).json({
