@@ -1,12 +1,12 @@
 version: '2.3'
 
 services:
-  node-worker:
+  node-worker-2:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 3003:3003
+      - 3006:3006
     networks:
       - dredd-network
 
