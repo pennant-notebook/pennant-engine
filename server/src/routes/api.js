@@ -8,9 +8,10 @@ const { randomBytes } = require('crypto');
 //above
 //added
 const { sendMessage } = require('../config/rabbitmq.js');
-// const { listenMessage } = require('../../../worker/app/config/rabbitmq.js');
-const { errorResponse, successResponse, getFromRedis } = require('../utils/responses.js')
+const { errorResponse, successResponse, getFromRedis } = require('../utils/responses.js');
+const { createTimestamp, exceedsTimeout } = require('../utils/executionTimeout.js');
 //above
+
 
 router.post('/submit', async (req, res, next) => {
   //added
@@ -20,13 +21,14 @@ router.post('/submit', async (req, res, next) => {
     const data = { notebookId, cells }
     // data.folder = uuid.v4();
     data.folder = randomBytes(10).toString('hex');
+    const submissionId = data.folder.toString();
+    createTimestamp(submissionId, 10000);
     console.log('apiRoutesReq.body', data)
     await sendMessage(data);
-    // await listenMessage(data);
     // console.log('apiRoutesReq.body', data)
     // res.status(202).send(successResponse(`http://localhost:3002/api/results/${data.folder}`));
     res.status(202).json({
-      submissionId: data.folder.toString(),
+      submissionId,
     });
   } catch (error) {
     console.log(error);
@@ -72,16 +74,18 @@ router.post('/reset/:notebookId', (req, res, next) => {
   res.json({ message: 'Context reset!' });
 });
 
+// TODO: More robust error handling that can distinguish between user code timeouts and system errors
 const statusCheckHandler = async (req, res) => {
-  console.log('pping')
   try {
     let key = req.params.id;
-    //added
-    console.log('key', key)
-    //
     let status = await getFromRedis(key);
     console.log('status', status)
-    if (status === null || status === 'sent to queue') {
+
+
+    if ((status === null || status === 'sent to queue') && exceedsTimeout(key)) {
+      console.log('exceeded timeout')
+      res.status(202).send({ "status": "timeout exceeded" });
+    } else if (status === null || status === 'sent to queue') {
       console.log('sent to queue')
       res.status(202).send({ "status": "pending" });
     }
