@@ -13,9 +13,9 @@ const { createTimestamp, exceedsTimeout } = require('../utils/executionTimeout.j
 //above
 
 const activeNotebooks = {}
-let fileCount = 10;
-let workerCount = 10;
-let portCount = 3014;
+let fileCount = 0;
+let workerCount = 0;
+// let portCount = 3005;
 // Import Modules
 const fs = require('fs');
 const child_process = require('child_process');
@@ -84,6 +84,7 @@ router.post('/submit', async (req, res, next) => {
       wait(10);  //7 seconds in milliseconds
       console.log('after');
       //!2 WRITE TO FILE
+      //!don't change the format below, or it will create an incorrect formatted docker-compose
 interface.send(`echo "version: '2.3'
 
 services:
@@ -91,8 +92,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - ${portCount}:${portCount}
+
     networks:
       - dredd-network
 
@@ -110,6 +110,7 @@ networks:
       console.log('after');
       //!ABOVE
       activeNotebooks[notebookId] = true;
+      //!replaced by a sqL call to db
     }
     const data = { notebookId, cells }
     // data.folder = uuid.v4();
@@ -121,7 +122,7 @@ networks:
     //!ADDED
     fileCount += 1;
     workerCount += 1;
-    portCount += 1;
+    // portCount += 1;
     console.log('fileCount', fileCount)
     //!ABOVE
     // console.log('apiRoutesReq.body', data)
