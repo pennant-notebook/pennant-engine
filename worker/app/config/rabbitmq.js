@@ -96,14 +96,65 @@
 
 
 
+// const amqp = require("amqp-connection-manager");
+// // const amqp from 'amqp-connection-manager';
+// const { engine } = require('../engine.js')
+
+// const QUEUE_NAME = 'jobs'
+// // const connection = amqp.connect(['amqp://localhost:5672']);
+// const connection = amqp.connect(['amqp://rabbitmq-dredd:5672']);
+
+// connection.on('connect', function () {
+//     console.log('Connected on back!');
+// });
+
+// connection.on('disconnect', function (err) {
+//     console.log('Disconnected on back.', err);
+// });
+
+// const onMessage = (data) => {
+// //push a status change to redis?
+//     let message = JSON.parse(data.content.toString());
+//     console.log('inQueueMessage', message);
+//     engine(message, channelWrapper, data);
+// }
+
+// // Set up a channel listening for messages in the queue.
+
+// const channelWrapper = connection.createChannel({
+//     setup: function (channel) {
+//         // `channel` here is a regular amqplib `ConfirmChannel`.
+//         return Promise.all([
+//             channel.assertQueue(QUEUE_NAME, { durable: true }),
+//             channel.prefetch(1),
+//             channel.consume(QUEUE_NAME, onMessage)
+//         ]);
+//     }
+// });
+
+// const listenMessage = async (data) => {
+// channelWrapper.waitForConnect()
+//     .then(function () {
+//         console.log("Listening for messages");
+//     });
+// };
+
+
+
+// // }
+
+// module.exports = {listenMessage}
+
+
+
 const amqp = require("amqp-connection-manager");
 // const amqp from 'amqp-connection-manager';
 const { engine } = require('../engine.js')
 
 const QUEUE_NAME = 'jobs'
+const TEST_ENV_VARIABLE = process.env.TEST_ENV_VARIABLE;
 // const connection = amqp.connect(['amqp://localhost:5672']);
 const connection = amqp.connect(['amqp://rabbitmq-dredd:5672']);
-
 connection.on('connect', function () {
     console.log('Connected on back!');
 });
@@ -121,13 +172,18 @@ const onMessage = (data) => {
 
 // Set up a channel listening for messages in the queue.
 
+// TODO : proncess.env QUEUE_NAME to be added below
 const channelWrapper = connection.createChannel({
     setup: function (channel) {
+        //!
+    console.log('channel created')
+    //!
         // `channel` here is a regular amqplib `ConfirmChannel`.
         return Promise.all([
-            channel.assertQueue(QUEUE_NAME, { durable: true }),
+          // ! changed this
+            channel.assertQueue("test4", { durable: true }),
             channel.prefetch(1),
-            channel.consume(QUEUE_NAME, onMessage)
+            channel.consume("test4", onMessage)
         ]);
     }
 });

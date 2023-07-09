@@ -7,14 +7,19 @@ const { randomBytes } = require('crypto');
 // const { initializeSubmissionOutput, getSubmissionOutput } = require('../utils/submissionOutput');
 //above
 //added
-const { sendMessage } = require('../config/rabbitmq.js');
+//!
+// const { sendMessage } = require('../config/rabbitmq.js');
+const { sendMessage, queueExists, setupQueueForNoteBook } = require('../config/rabbitmq.js');
+//!
 const { errorResponse, successResponse, getFromRedis } = require('../utils/responses.js');
 const { createTimestamp, exceedsTimeout } = require('../utils/executionTimeout.js');
 //above
 
 const activeNotebooks = {}
-let fileCount = 0;
-let workerCount = 0;
+//! BACK TO 0
+let fileCount = 3;
+let workerCount = 3;
+//!
 const fs = require('fs');
 const child_process = require('child_process');
 
@@ -28,7 +33,9 @@ router.post('/submit', async (req, res, next) => {
     console.log('fileCountBefore', fileCount)
     //!
     console.log('reqbodyapiroute', req.body)
-    const { notebookId, cells } = req.body;
+    //! CONST TO LET
+    let { notebookId, cells } = req.body;
+    //!
     if (!activeNotebooks[notebookId]) {
       // CREATE INTERFACE
       var interface = {
@@ -112,13 +119,24 @@ networks:
       fileCount += 1;
       workerCount += 1;
     }
-    const data = { notebookId, cells }
+    //!CONST TO LET
+    let data = { notebookId, cells }
+    //!
+    notebookId = 'jobs'
+    // ! test notebookId test1
+    notebookId = 'test4'
+    //!
     // data.folder = uuid.v4();
     data.folder = randomBytes(10).toString('hex');
     const submissionId = data.folder.toString();
     createTimestamp(submissionId, 10000);
     console.log('apiRoutesReq.body', data)
-    await sendMessage(data);
+    //!
+    // await sendMessage(data);
+     // ! queue must always be asserted, even if it already exists
+     setupQueueForNoteBook(notebookId); 
+     await sendMessage(data, notebookId); 
+    //!
     res.status(202).json({
       submissionId,
     });
