@@ -15,60 +15,58 @@ const { createTimestamp, exceedsTimeout } = require('../utils/executionTimeout.j
 const activeNotebooks = {}
 let fileCount = 0;
 let workerCount = 0;
-// let portCount = 3005;
-// Import Modules
 const fs = require('fs');
 const child_process = require('child_process');
 
-// Create Interface
-var interface = {
-    
-    terminal: child_process.spawn('/bin/sh'),
-    // terminal: child_process.spawn('C:/bin/sh'),
-    handler: console.log,
-    send: (data) => {
-        interface.terminal.stdin.write(data + '\n');
-    },
-    cwd: () => {
-        let cwd = fs.readlinkSync('/proc/' + interface.terminal.pid + '/cwd');
-        interface.handler({ type: 'cwd', data: cwd });
-    }
-};
 
-// Handle Data
-interface.terminal.stdout.on('data', (buffer) => {
-    interface.handler({ type: 'data', data: buffer });
-});
-
-// Handle Error
-interface.terminal.stderr.on('data', (buffer) => {
-    interface.handler({ type: 'error', data: buffer });
-});
-
-// Handle Closure
-interface.terminal.on('close', () => {
-    interface.handler({ type: 'closure', data: null });
-});
-//!ABOVE
 
 router.post('/submit', async (req, res, next) => {
   //added
   try {
+    //!
+    // restart = true;
+    console.log('fileCountBefore', fileCount)
+    //!
     console.log('reqbodyapiroute', req.body)
     const { notebookId, cells } = req.body;
     if (!activeNotebooks[notebookId]) {
+      // CREATE INTERFACE
+      var interface = {
+          
+        terminal: child_process.spawn('/bin/sh'),
+        // terminal: child_process.spawn('C:/bin/sh'),
+        handler: console.log,
+        send: (data) => {
+            interface.terminal.stdin.write(data + '\n');
+        },
+        cwd: () => {
+            let cwd = fs.readlinkSync('/proc/' + interface.terminal.pid + '/cwd');
+            interface.handler({ type: 'cwd', data: cwd });
+        }
+      };
+
+      // Handle Data
+      interface.terminal.stdout.on('data', (buffer) => {
+        interface.handler({ type: 'data', data: buffer });
+      });
+
+      // Handle Error
+      interface.terminal.stderr.on('data', (buffer) => {
+        interface.handler({ type: 'error', data: buffer });
+      });
+
+      // Handle Closure
+      interface.terminal.on('close', () => {
+        interface.handler({ type: 'closure', data: null });
+      });
+
+      //USE INTERFACE
       //! spin up another docker worker here
-      //! for this to work, you have to de-dockerize server and start with separate command?
-      //! or can start with the && to run simultaneously docker compose up --build && npm run dev (put the script in base of repo and link npm run dev to app.js in server)
-      //? this is where the docker run --name ${notebookId} landzbej/worker command goes
-      //? docker exec container-name tail /var/log/date.log
-      //how to run this command?
-      //!ADDED
       interface.handler = (output) => {
-        let data = '';
+        let data = ''; 
         if (output.data) data += ': ' + output.data.toString();
         console.log("from the cmd line", output.type + data);
-    };
+      };
       interface.send('cd ../worker')
       interface.send('pwd');
       //!1 CREATE FILE
@@ -78,10 +76,10 @@ router.post('/submit', async (req, res, next) => {
         var end = start;
         while(end < start + ms) {
           end = new Date().getTime();
-       }
-     }
-     console.log('before');
-      wait(10);  //7 seconds in milliseconds
+        }
+      }
+      console.log('before');
+      wait(10);  //.01 seconds in milliseconds
       console.log('after');
       //!2 WRITE TO FILE
       //!don't change the format below, or it will create an incorrect formatted docker-compose
@@ -101,16 +99,18 @@ networks:
     external:
       name: dredd-network " >> docker-compose.${fileCount}.yml`);
       console.log('before');
-      wait(10);  //7 seconds in milliseconds
+      wait(10);  //.01 seconds in milliseconds
       console.log('after');
-     //!3 DOCKER COMPOSE UP
-     interface.send(`docker compose -f docker-compose.${fileCount}.yml up`);
+      //!3 DOCKER COMPOSE UP
+      interface.send(`docker compose -f docker-compose.${fileCount}.yml up`);
       console.log('before');
-      wait(10);  //7 seconds in milliseconds
+      wait(10);  //.01 seconds in milliseconds
       console.log('after');
       //!ABOVE
       activeNotebooks[notebookId] = true;
-      //!replaced by a sqL call to db
+      //!replace with a sqL call to db
+      fileCount += 1;
+      workerCount += 1;
     }
     const data = { notebookId, cells }
     // data.folder = uuid.v4();
@@ -119,14 +119,6 @@ networks:
     createTimestamp(submissionId, 10000);
     console.log('apiRoutesReq.body', data)
     await sendMessage(data);
-    //!ADDED
-    fileCount += 1;
-    workerCount += 1;
-    // portCount += 1;
-    console.log('fileCount', fileCount)
-    //!ABOVE
-    // console.log('apiRoutesReq.body', data)
-    // res.status(202).send(successResponse(`http://localhost:3002/api/results/${data.folder}`));
     res.status(202).json({
       submissionId,
     });
@@ -134,25 +126,6 @@ networks:
     console.log(error);
     res.status(500).send(errorResponse(500, "System error"));
   }
-  //above
-
-  //deleted
-  // const { notebookId, cells } = req.body;
-  // const {cellId, code}  = cells[0];
-
-  // const cellIds = cells.map(cell => cell.cellId);
-
-  // const submissionId = uuid.v4();
-
-  // initializeSubmissionOutput(submissionId, cellIds);
-
-  // engine(submissionId, cells, notebookId);
-
-  // res.json({
-  //   message: 'ok',
-  //   submissionId,
-  // });
-  //above
 });
 
 
@@ -206,24 +179,5 @@ router.get("/status/:id", statusCheckHandler);
 
 //added
 router.get("/results/:id", statusCheckHandler);
-
-
-/* 
-console.log('null')
-
-status: null
-status: sent to queue
-status: processing
-
-status: {output of executed code}
-
-{status:  
-output: 
-}
-
-*/
-//above
-
-
 
 module.exports = router;
