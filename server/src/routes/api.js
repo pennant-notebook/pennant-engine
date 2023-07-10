@@ -1,38 +1,144 @@
 const router = require('express').Router();
 const uuid = require('uuid');
-const {engine} = require('../utils/engine');
-const { resetContext } = require('../utils/context');
-const { initializeSubmissionOutput, getSubmissionOutput } = require('../utils/submissionOutput');
+const { randomBytes } = require('crypto');
+//erased
+// const {engine} = require('../utils/engine');
+// const { resetContext } = require('../utils/context');
+// const { initializeSubmissionOutput, getSubmissionOutput } = require('../utils/submissionOutput');
+//above
+//added
+const { sendMessage } = require('../config/rabbitmq.js');
+const { errorResponse, successResponse, getFromRedis } = require('../utils/responses.js');
+const { createTimestamp, exceedsTimeout } = require('../utils/executionTimeout.js');
+//above
+
+const activeNotebooks = {}
+let fileCount = 0;
+let workerCount = 0;
+const fs = require('fs');
+const child_process = require('child_process');
+
+
 
 router.post('/submit', async (req, res, next) => {
-  const { notebookId, cells } = req.body;
-  const {cellId, code}  = cells[0];
+  //added
+  try {
+    //!
+    // restart = true;
+    console.log('fileCountBefore', fileCount)
+    //!
+    console.log('reqbodyapiroute', req.body)
+    const { notebookId, cells } = req.body;
+    if (!activeNotebooks[notebookId]) {
+      // CREATE INTERFACE
+      var interface = {
+          
+        terminal: child_process.spawn('/bin/sh'),
+        // terminal: child_process.spawn('C:/bin/sh'),
+        handler: console.log,
+        send: (data) => {
+            interface.terminal.stdin.write(data + '\n');
+        },
+        cwd: () => {
+            let cwd = fs.readlinkSync('/proc/' + interface.terminal.pid + '/cwd');
+            interface.handler({ type: 'cwd', data: cwd });
+        }
+      };
 
-  const cellIds = cells.map(cell => cell.cellId);
+      // Handle Data
+      interface.terminal.stdout.on('data', (buffer) => {
+        interface.handler({ type: 'data', data: buffer });
+      });
 
-  const submissionId = uuid.v4();
+      // Handle Error
+      interface.terminal.stderr.on('data', (buffer) => {
+        interface.handler({ type: 'error', data: buffer });
+      });
 
-  initializeSubmissionOutput(submissionId, cellIds);
+      // Handle Closure
+      interface.terminal.on('close', () => {
+        interface.handler({ type: 'closure', data: null });
+      });
 
-  engine(submissionId, cells, notebookId);
+      //USE INTERFACE
+      //! spin up another docker worker here
+      interface.handler = (output) => {
+        let data = ''; 
+        if (output.data) data += ': ' + output.data.toString();
+        console.log("from the cmd line", output.type + data);
+      };
+      interface.send('cd ../worker')
+      interface.send('pwd');
+      //!1 CREATE FILE
+      interface.send(`touch docker-compose.${fileCount}.yml`);
+      function wait(ms){
+        var start = new Date().getTime();
+        var end = start;
+        while(end < start + ms) {
+          end = new Date().getTime();
+        }
+      }
+      console.log('before');
+      wait(10);  //.01 seconds in milliseconds
+      console.log('after');
+      //!2 WRITE TO FILE
+      //!don't change the format below, or it will create an incorrect formatted docker-compose
+interface.send(`echo "version: '2.3'
 
-  res.json({
-    message: 'ok',
-    submissionId,
-  });
+services:
+  node-worker-${workerCount}:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    networks:
+      - dredd-network
+
+networks:
+  dredd-network:
+    external:
+      name: dredd-network " >> docker-compose.${fileCount}.yml`);
+      console.log('before');
+      wait(10);  //.01 seconds in milliseconds
+      console.log('after');
+      //!3 DOCKER COMPOSE UP
+      interface.send(`docker compose -f docker-compose.${fileCount}.yml up`);
+      console.log('before');
+      wait(10);  //.01 seconds in milliseconds
+      console.log('after');
+      //!ABOVE
+      activeNotebooks[notebookId] = true;
+      //!replace with a sqL call to db
+      fileCount += 1;
+      workerCount += 1;
+    }
+    const data = { notebookId, cells }
+    // data.folder = uuid.v4();
+    data.folder = randomBytes(10).toString('hex');
+    const submissionId = data.folder.toString();
+    createTimestamp(submissionId, 10000);
+    console.log('apiRoutesReq.body', data)
+    await sendMessage(data);
+    res.status(202).json({
+      submissionId,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send(errorResponse(500, "System error"));
+  }
 });
 
 
 
-router.get('/status/:submissionId', (req, res, next) => {
-  const { submissionId } = req.params;
-  const result = getSubmissionOutput(submissionId);
-  res.json(result);
-});
+// router.get('/status/:submissionId', (req, res, next) => {
+//   const { submissionId } = req.params;
+//   const result = getSubmissionOutput(submissionId);
+//   res.json(result);
+// });
 
 
 // is the context active or not?
-router.get('/status/:notebookId', (req, res, next) => { });
+router.get('/notebookstatus/:notebookId', (req, res, next) => { });
 
 // reset context object
 
@@ -41,5 +147,37 @@ router.post('/reset/:notebookId', (req, res, next) => {
   res.json({ message: 'Context reset!' });
 });
 
+// TODO: More robust error handling that can distinguish between user code timeouts and system errors
+const statusCheckHandler = async (req, res) => {
+  try {
+    let key = req.params.id;
+    let status = await getFromRedis(key);
+    console.log('status', status)
+
+
+    if ((status === null || status === 'sent to queue') && exceedsTimeout(key)) {
+      console.log('exceeded timeout')
+      res.status(202).send({ "status": "timeout exceeded" });
+    } else if (status === null || status === 'sent to queue') {
+      console.log('sent to queue')
+      res.status(202).send({ "status": "pending" });
+    }
+    else if (status == 'Processing') {
+      console.log('processing')
+      res.status(202).send({ "status": "pending" });
+    }
+    else {
+      status = JSON.parse(status);
+      res.status(200).send(successResponse(status));
+    }
+  } catch (error) {
+    res.status(500).send(errorResponse(500, "System error"));
+  }
+
+}
+router.get("/status/:id", statusCheckHandler);
+
+//added
+router.get("/results/:id", statusCheckHandler);
 
 module.exports = router;

@@ -1,0 +1,16 @@
+version: '2.3'
+
+services:
+  node-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    networks:
+      - dredd-network
+
+networks:
+  dredd-network:
+    external:
+      name: dredd-network
