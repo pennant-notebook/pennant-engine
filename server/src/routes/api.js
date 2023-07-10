@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const uuid = require('uuid');
 const { randomBytes } = require('crypto');
-const { sendMessage } = require('../config/rabbitmq.js');
+const { sendMessage, setupQueueForNoteBook } = require('../config/rabbitmq.js');
 const { errorResponse, successResponse, getFromRedis } = require('../utils/responses.js');
 const { createTimestamp, exceedsTimeout } = require('../utils/executionTimeout.js');
 
@@ -24,11 +24,13 @@ router.post('/submit', async (req, res, next) => {
       //!replace with a sqL call to db
     }
     const data = { notebookId, cells }
+    setupQueueForNoteBook(notebookId);
+
     data.folder = randomBytes(10).toString('hex');
     const submissionId = data.folder.toString();
     createTimestamp(submissionId, 10000);
     console.log('apiRoutesReq.body', data)
-    await sendMessage(data);
+    await sendMessage(data, notebookId);
     res.status(202).json({
       submissionId,
     });
