@@ -1,21 +1,14 @@
 const router = require('express').Router();
 const uuid = require('uuid');
 const { randomBytes } = require('crypto');
-//erased
-// const {engine} = require('../utils/engine');
-// const { resetContext } = require('../utils/context');
-// const { initializeSubmissionOutput, getSubmissionOutput } = require('../utils/submissionOutput');
-//above
-//added
 const { sendMessage } = require('../config/rabbitmq.js');
 const { errorResponse, successResponse, getFromRedis } = require('../utils/responses.js');
 const { createTimestamp, exceedsTimeout } = require('../utils/executionTimeout.js');
-//above
+
 
 const activeNotebooks = {}
-const fs = require('fs');
-const child_process = require('child_process');
 const { createNewWorker } = require('../utils/workerTerminal.js');
+const { listWorkers, containerExists } = require('../utils/workerManagement.js');
 
 
 
@@ -23,7 +16,9 @@ router.post('/submit', async (req, res, next) => {
   try {
     console.log('reqbodyapiroute', req.body)
     const { notebookId, cells } = req.body;
-    if (!activeNotebooks[notebookId]) {
+
+    const workerExists = await containerExists(notebookId);
+    if (!activeNotebooks[notebookId] && !workerExists) {
       createNewWorker(notebookId);
       activeNotebooks[notebookId] = true;
       //!replace with a sqL call to db
@@ -94,5 +89,18 @@ router.get("/status/:id", statusCheckHandler);
 
 //added
 router.get("/results/:id", statusCheckHandler);
+
+
+
+router.get('/test', async (req, res) => {
+
+  const workers = await listWorkers();
+
+  console.log(workers)
+  const result = await containerExists('CATMAN');
+
+  console.log(result);
+  res.send('ok');
+})
 
 module.exports = router;

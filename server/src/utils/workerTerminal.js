@@ -44,7 +44,6 @@ interface.handler = (output) => {
   console.log("from the cmd line", output.type + data);
 };
 
-
 const createNewWorker = (notebookId) => {
   const DOCKER_RUN_CMD = `docker run -d \
   --name worker.${notebookId} \
