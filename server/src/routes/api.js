@@ -13,107 +13,22 @@ const { createTimestamp, exceedsTimeout } = require('../utils/executionTimeout.j
 //above
 
 const activeNotebooks = {}
-let fileCount = 0;
-let workerCount = 0;
 const fs = require('fs');
 const child_process = require('child_process');
+const { createNewWorker } = require('../utils/workerTerminal.js');
 
 
 
 router.post('/submit', async (req, res, next) => {
-  //added
   try {
-    //!
-    // restart = true;
-    console.log('fileCountBefore', fileCount)
-    //!
     console.log('reqbodyapiroute', req.body)
     const { notebookId, cells } = req.body;
     if (!activeNotebooks[notebookId]) {
-      // CREATE INTERFACE
-      var interface = {
-          
-        terminal: child_process.spawn('/bin/sh'),
-        // terminal: child_process.spawn('C:/bin/sh'),
-        handler: console.log,
-        send: (data) => {
-            interface.terminal.stdin.write(data + '\n');
-        },
-        cwd: () => {
-            let cwd = fs.readlinkSync('/proc/' + interface.terminal.pid + '/cwd');
-            interface.handler({ type: 'cwd', data: cwd });
-        }
-      };
-
-      // Handle Data
-      interface.terminal.stdout.on('data', (buffer) => {
-        interface.handler({ type: 'data', data: buffer });
-      });
-
-      // Handle Error
-      interface.terminal.stderr.on('data', (buffer) => {
-        interface.handler({ type: 'error', data: buffer });
-      });
-
-      // Handle Closure
-      interface.terminal.on('close', () => {
-        interface.handler({ type: 'closure', data: null });
-      });
-
-      //USE INTERFACE
-      //! spin up another docker worker here
-      interface.handler = (output) => {
-        let data = ''; 
-        if (output.data) data += ': ' + output.data.toString();
-        console.log("from the cmd line", output.type + data);
-      };
-      interface.send('cd ../worker')
-      interface.send('pwd');
-      //!1 CREATE FILE
-      interface.send(`touch docker-compose.${fileCount}.yml`);
-      function wait(ms){
-        var start = new Date().getTime();
-        var end = start;
-        while(end < start + ms) {
-          end = new Date().getTime();
-        }
-      }
-      console.log('before');
-      wait(10);  //.01 seconds in milliseconds
-      console.log('after');
-      //!2 WRITE TO FILE
-      //!don't change the format below, or it will create an incorrect formatted docker-compose
-interface.send(`echo "version: '2.3'
-
-services:
-  node-worker-${workerCount}:
-    build:
-      context: .
-      dockerfile: Dockerfile
-
-    networks:
-      - dredd-network
-
-networks:
-  dredd-network:
-    external:
-      name: dredd-network " >> docker-compose.${fileCount}.yml`);
-      console.log('before');
-      wait(10);  //.01 seconds in milliseconds
-      console.log('after');
-      //!3 DOCKER COMPOSE UP
-      interface.send(`docker compose -f docker-compose.${fileCount}.yml up`);
-      console.log('before');
-      wait(10);  //.01 seconds in milliseconds
-      console.log('after');
-      //!ABOVE
+      createNewWorker(notebookId);
       activeNotebooks[notebookId] = true;
       //!replace with a sqL call to db
-      fileCount += 1;
-      workerCount += 1;
     }
     const data = { notebookId, cells }
-    // data.folder = uuid.v4();
     data.folder = randomBytes(10).toString('hex');
     const submissionId = data.folder.toString();
     createTimestamp(submissionId, 10000);
