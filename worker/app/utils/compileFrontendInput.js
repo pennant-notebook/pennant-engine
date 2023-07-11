@@ -58,12 +58,12 @@ const compileFrontendInput = (cell, notebookId) => {
         }) 
         //if has been run previously and has const, break out of outer loop and reset context
         if (needABreak) {
-          executeCode(submissionId, cell.cellId, cell.code, notebookId);
+          // executeCode(submissionId, cell.cellId, cell.code, notebookId);
           delete cellsRun[cell.cellId];
           resetContext(notebookId);
           console.log('broke out from running all cells bc of const has already been run already')
         //   break;
-        return 'broken';
+        return 'ok';
         }
       } else {
         //check all variables in cellVariables
@@ -79,7 +79,7 @@ const compileFrontendInput = (cell, notebookId) => {
           }
         }
         if (errorRiden) {
-          executeCode(submissionId, cell.cellId, cell.code, notebookId);
+          // executeCode(submissionId, cell.cellId, cell.code, notebookId);
           delete cellsRun[cell.cellId];
           resetContext(notebookId);
           console.log('broke out from running all cells bc of a not-run-prev duplicate')

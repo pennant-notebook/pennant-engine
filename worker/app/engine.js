@@ -3,7 +3,7 @@ const vm = require('vm');
 const { client } = require("./config/redis.js");
 //above
 const { Console } = require('console');
-const { loadContext, updateContextWrapper } = require('./utils/context.js');
+const { loadContext, resetContext, updateContextWrapper } = require('./utils/context.js');
 const { updateSubmissionOutput, initializeSubmissionOutput, getSubmissionOutput } = require('./utils/submissionOutput.js');
 const { compileFrontendInput } = require("./utils/compileFrontendInput.js");
 //added
@@ -28,9 +28,20 @@ const engine = async (apiBody, ch, msg) => {
     try {
       // connect();
       let compiler = compileFrontendInput(cell, apiBody.notebookId);
-      if (compiler === 'broken') break;
+      // if (compiler === 'broken') break;
+      // if (compiler === 'broken') {
+      //   executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
+      // }
+      if (compiler === 'ok') {
+        resetContext(apiBody.notebookId);
+        // executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
+
+      }
       // executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
       let result = executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
+      if (compiler === 'broken') {
+        resetContext(apiBody.notebookId);
+      }
       //added
       //////BUG HERE
       // client.setex(apiBody.folder.toString(), 3600, JSON.stringify(result));
