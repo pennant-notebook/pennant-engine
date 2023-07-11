@@ -8,7 +8,7 @@ const { createTimestamp, exceedsTimeout } = require('../utils/executionTimeout.j
 
 const activeNotebooks = {}
 // const { createNewWorker } = require('../utils/workerTerminal.js');
-const { restartContainer, createNewWorker, startContainer, workerRunning, containerExists } = require('../utils/workerManagement.js');
+const { restartContainer, createNewWorker, startContainer, workerRunning, containerExists, killContainer, removeContainer, containerActive } = require('../utils/workerManager.js');
 
 router.post('/submit', async (req, res, next) => {
   try {
@@ -108,10 +108,12 @@ router.get("/results/:id", statusCheckHandler);
 const Docker = require('dockerode');
 const docker = new Docker();
 
-
+// ! testing only
 router.get('/test', async (req, res) => {
 
-  restartContainerHandler('aw354aw6ts');
+
+  removeContainer('looper');
+  restartContainerHandler('looper')
   res.send('ok');
 })
 
