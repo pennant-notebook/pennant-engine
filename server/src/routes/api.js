@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const uuid = require('uuid');
 const { randomBytes } = require('crypto');
-const { sendMessage, setupQueueForNoteBook } = require('../config/rabbitmq.js');
+const { sendMessage, setupQueueForNoteBook, deleteQueue } = require('../config/rabbitmq.js');
 const { errorResponse, successResponse, getFromRedis } = require('../utils/responses.js');
 const { createTimestamp, exceedsTimeout } = require('../utils/executionTimeout.js');
 
@@ -112,15 +112,18 @@ const docker = new Docker();
 router.get('/test', async (req, res) => {
 
 
-  removeContainer('looper');
+  // removeContainer('looper');
   restartContainerHandler('looper')
   res.send('ok');
 })
 
+
+// TODO resetting context must flush queue as well
 const restartContainerHandler = async (notebookId) => {
   try {
     const running = await workerRunning(notebookId);
     const containerStopped = await containerExists(notebookId);
+    await deleteQueue(notebookId);
 
     if (running) {
       console.log('restarting notebook container')
@@ -139,6 +142,8 @@ const restartContainerHandler = async (notebookId) => {
     return;
   }
 }
+
+
 /* 
 if there's a timeout
   - check if the container is still running
