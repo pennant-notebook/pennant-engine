@@ -14,6 +14,7 @@ const { listWorkers, containerExists } = require('../utils/workerManagement.js')
 
 router.post('/submit', async (req, res, next) => {
   try {
+    //TODO some checks on req body if diff than shape we expect
     console.log('reqbodyapiroute', req.body)
     const { notebookId, cells } = req.body;
 
@@ -55,8 +56,12 @@ router.get('/notebookstatus/:notebookId', (req, res, next) => { });
 // reset context object
 
 router.post('/reset/:notebookId', (req, res, next) => {
+  //TODO validation for invalid notebook Ids (throw err if invalid)
+  //try
   resetContext(req.params.notebookId);
   res.json({ message: 'Context reset!' });
+  //catch
+  //send(400)
 });
 
 // TODO: More robust error handling that can distinguish between user code timeouts and system errors
@@ -66,10 +71,14 @@ const statusCheckHandler = async (req, res) => {
     let status = await getFromRedis(key);
     console.log('status', status)
 
-
+//create conditional with payload of {"status": "critical error"}
     if ((status === null || status === 'sent to queue') && exceedsTimeout(key)) {
-      console.log('exceeded timeout')
-      res.status(202).send({ "status": "timeout exceeded" });
+      console.log('exceeded timeout context reset')
+      //TODO create a spindown worker?
+      //TODO call it
+      //TODO call createNewWorker()
+      //
+      res.status(202).send({ "status": "critical error", "message": "Your notebook environment has been reset. If you were changing already declared variables, and you believe that your logic is correct, run your code one more time and it should work." });
     } else if (status === null || status === 'sent to queue') {
       console.log('sent to queue')
       res.status(202).send({ "status": "pending" });
