@@ -145,7 +145,7 @@ if there's a timeout
     - if it is, stop it
     - if it isn't, restart it
 */
-
-
-
+router.get('/', (req,res) => {
+  res.send('ok');
+})
 module.exports = router;
