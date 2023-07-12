@@ -6,7 +6,7 @@ const { errorResponse, successResponse, getFromRedis } = require('../utils/respo
 const { createTimestamp, exceedsTimeout } = require('../utils/executionTimeout.js');
 const { setRedisInitial, testSetHashKey, setRedisHashkey, getField, getAllFields } = require('../utils/redisHelpers.js');
 
-
+const { basicDataCheck } = require('../utils/basicDataCheck.js');
 
 const activeNotebooks = {}
 // const { createNewWorker } = require('../utils/workerTerminal.js');
@@ -14,12 +14,12 @@ const { restartContainer, createNewWorker, startContainer, workerRunning, contai
 
 // TODO check if the worker is on? 
 router.post('/submit', async (req, res, next) => {
+  let thrown = {};
   try {
-    //TODO some checks on req body if diff than shape we expect
-    console.log('reqbodyapiroute', req.body)
+    basicDataCheck(req, thrown);
     const { notebookId, cells } = req.body;
 
-    const workerExists = await containerActive(notebookId);
+    const workerExists = await containerExists(notebookId);
     if (!activeNotebooks[notebookId] && !workerExists) {
       createNewWorker(notebookId);
       activeNotebooks[notebookId] = true;
@@ -49,17 +49,14 @@ router.post('/submit', async (req, res, next) => {
     });
   } catch (error) {
     console.log(error);
+    if (thrown.yes) {
+      delete thrown.yes;
+      res.status(400).send(errorResponse(400, error));
+    } else {
     res.status(500).send(errorResponse(500, "System error"));
+    }
   }
 });
-
-
-
-// router.get('/status/:submissionId', (req, res, next) => {
-//   const { submissionId } = req.params;
-//   const result = getSubmissionOutput(submissionId);
-//   res.json(result);
-// });
 
 
 // is the context active or not?
@@ -68,12 +65,16 @@ router.get('/notebookstatus/:notebookId', (req, res, next) => { });
 // reset context object
 
 router.post('/reset/:notebookId', (req, res, next) => {
-  //TODO validation for invalid notebook Ids (throw err if invalid)
-  //try
+  try {
+    if(!activeNotebooks[req.params.notebookId]) {
+      throw 'that notebook ID does not exist'
+    }
   resetContext(req.params.notebookId);
   res.json({ message: 'Context reset!' });
-  //catch
-  //send(400)
+  } catch (error) {
+    console.log(error)
+    res.status(404).send(errorResponse(404, error));
+  }
 });
 
 // TODO: More robust error handling that can distinguish between user code timeouts and system errors
