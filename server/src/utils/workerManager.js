@@ -46,8 +46,10 @@ interface.handler = (output) => {
   console.log("from the cmd line", output.type + data);
 };
 
+
 const createNewWorker = (notebookId) => {
   const DOCKER_RUN_CMD = `docker run -d \
+  -m 256m --memory-swap 256m \
   --name worker.${notebookId} \
   --network dredd-network \
   -e QUEUE_NAME=${notebookId} \
@@ -150,6 +152,16 @@ const workerRunning = async (workerName) => {
   return container.State === 'running';
 }
 
+const removeContainer = async (workerName) => {
+  const id = await getContainerId(workerName);
+  if (!id) {
+    console.log(`Removing container failed. Container not found: /worker.${workerName}`);
+    return null;
+  };
+  const container = docker.getContainer(id);
+  return container.remove();
+}
+
 // TODO
 /* 
 containerExists and is running ( containerActive )
@@ -163,4 +175,4 @@ const isRunning = (workerName) => {
 
 
 
-module.exports = { listWorkers, containerActive, createNewWorker, getContainerByName, getContainerId, stopContainer: killContainer, restartContainer, isRunning , containerExists, workerRunning, startContainer}
+module.exports = { listWorkers,  containerActive, createNewWorker, getContainerByName, getContainerId, killContainer, restartContainer, isRunning , containerExists, workerRunning, startContainer, removeContainer}
