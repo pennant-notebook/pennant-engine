@@ -4,6 +4,7 @@ const { client } = require('../config/redis.js');
 const getFromRedis = (key) => {
   return new Promise((resolve, reject) => {
     client.get(key, (err, data) => {
+
       if (err) {
         reject('thisis an error', err);
       } else {
@@ -33,6 +34,8 @@ const convertOptionsToFields = (obj) => {
   return arr;
 }
 
+
+
 const setRedisHashkey = (submissionId, options) => {
   if (!submissionId || !options) {
     throw new Error('Error setting field values: submissionId and options must be defined');
@@ -58,7 +61,8 @@ const getField = async (key, field) => {
         console.error('Error retrieving field value:', err);
       } else {
         console.log('found: ', value)
-        resolve(value);
+        const parsed = JSON.parse(value);
+        resolve(parsed);
       }
     });
   })

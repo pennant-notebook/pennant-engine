@@ -15,6 +15,7 @@ const { restartContainer, createNewWorker, startContainer, workerRunning, contai
 // TODO check if the worker is on? 
 router.post('/submit', async (req, res, next) => {
   let thrown = {};
+
   try {
     basicDataCheck(req, thrown);
     const { notebookId, cells } = req.body;
@@ -32,7 +33,7 @@ router.post('/submit', async (req, res, next) => {
     const submissionId = data.folder.toString();
     createTimestamp(submissionId, 10000);
     console.log('apiRoutesReq.body', data)
-    // !TOGGLED sendMessage OFF FOR TESTING
+
     await sendMessage(data, notebookId);
     await setRedisHashkey(submissionId, {
       status: 'pending',
@@ -41,8 +42,6 @@ router.post('/submit', async (req, res, next) => {
       timeProcessed: null,
       output: null,
     });
-
-    // TODO set on redis: submissionId -> {status: 'pending', timestamp: Date.now(), notebookId: notebookId}
 
     res.status(202).json({
       submissionId,
@@ -53,7 +52,7 @@ router.post('/submit', async (req, res, next) => {
       delete thrown.yes;
       res.status(400).send(errorResponse(400, error));
     } else {
-    res.status(500).send(errorResponse(500, "System error"));
+      res.status(500).send(errorResponse(500, "System error"));
     }
   }
 });
@@ -66,11 +65,11 @@ router.get('/notebookstatus/:notebookId', (req, res, next) => { });
 
 router.post('/reset/:notebookId', (req, res, next) => {
   try {
-    if(!activeNotebooks[req.params.notebookId]) {
+    if (!activeNotebooks[req.params.notebookId]) {
       throw 'that notebook ID does not exist'
     }
-  resetContext(req.params.notebookId);
-  res.json({ message: 'Context reset!' });
+    resetContext(req.params.notebookId);
+    res.json({ message: 'Context reset!' });
   } catch (error) {
     console.log(error)
     res.status(404).send(errorResponse(404, error));
@@ -81,28 +80,13 @@ router.post('/reset/:notebookId', (req, res, next) => {
 const statusCheckHandler = async (req, res) => {
   try {
     let key = req.params.id;
-    // let status = await getFromRedis(key);  // ! Redis shape will change
-    // ! propose:
-    // let status = await getFromRedis(key).status;  // ! Redis shape will change 
-    // console.log('status from redis: ', status);
-    // console.log('status', status)
 
-
-const all = await getAllFields(key);
-console.log('all 🐕️', all);
+    const all = await getAllFields(key);
     const status = await getField(key, 'status');
-    console.log('status 🦇', status)
-    const outputField = await getField(key, 'output');
-    const output = JSON.parse(outputField);
-    console.log('🐅', output)
+    const output = await getField(key, 'output');
 
-    // !  error on exceedsTimeout
-    console.log('exceedsTimeout: ', exceedsTimeout(key));
+    if ([null, 'sent to queue', 'pending'].includes(status) && exceedsTimeout(key)) {
 
-    // ! bugs with sending statuses
-    // TODO result processing needs to accomodate redis hashkeys
-    //create conditional with payload of {"status": "critical error"}
-    if ((status === null || status === 'sent to queue' || status === 'pending' ) && exceedsTimeout(key)) {
       console.log('exceeded timeout context reset')
       //TODO create a spindown worker?
       //TODO call it
@@ -122,54 +106,23 @@ console.log('all 🐕️', all);
       res.status(202).send({ "status": "pending" });
     }
     else {
-      // status = JSON.parse(status);
-
       console.log('else branch')
       res.status(200).send(output);
     }
   } catch (error) {
-    console.log('error happend 🐈️')
     res.status(500).send(errorResponse(500, "System error: ", error));
   }
 
 }
 router.get("/status/:id", statusCheckHandler);
 
-//added
 router.get("/results/:id", statusCheckHandler);
 
 
-const Docker = require('dockerode');
-const docker = new Docker();
 
-// ! testing only
 router.get('/test', async (req, res) => {
-
-  try {
-    // removeContainer('looper');
-    // restartContainerHandler('looper')
-    // await testSetHashKey('testRoomId', {name: 'booger', age: 30});
-
-    // await setRedisHashkey('testRoomId', 'timeRequested')
-    // const watermelon = await getAllFields('dc0b4e04a3cda10c2eb8')
-
-
-    // const watermelon = await getField('f5ce22c57e209a1b0aad', 'output');
-    const watermelon = await getAllFields('f5ce22c57e209a1b0aad');
-
-
-
-
-
-
-    res.send(watermelon);
-  } catch (error) {
-    console.log('stuff wnet down :*( ', error)
-    res.send('not ok')
-  }
+  res.send('testroute')
 })
-
-
 
 const restartContainerHandler = async (notebookId) => {
   try {
@@ -195,14 +148,6 @@ const restartContainerHandler = async (notebookId) => {
     return;
   }
 }
-
-
-/* 
-if there's a timeout
-  - check if the container is still running
-    - if it is, stop it
-    - if it isn't, restart it
-*/
 
 
 

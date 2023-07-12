@@ -61,7 +61,8 @@ const getField = async (key, field) => {
         console.error('Error retrieving field value:', err);
       } else {
         console.log('found: ', value)
-        resolve(value);
+        const parsed = JSON.parse(value);
+        resolve(parsed);
       }
     });
   })
