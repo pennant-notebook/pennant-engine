@@ -76,14 +76,40 @@ router.post('/reset/:notebookId', (req, res, next) => {
   }
 });
 
+
+const restartContainerHandler = async (notebookId) => {
+  try {
+    const running = await workerRunning(notebookId);
+    const containerStopped = await containerExists(notebookId);
+    await deleteQueue(notebookId);
+
+    if (running) {
+      console.log('restarting notebook container')
+      await restartContainer(notebookId)
+    } else if (containerStopped) {
+      console.log('Notebook container was stopped. Starting')
+      await startContainer(notebookId);
+    } else {
+      console.log(`Notebook container did not exist. Creating new worker for ${notebookId}`);
+      await createNewWorker(notebookId);
+    }
+
+    console.log('container restarted')
+    return;
+  } catch (error) {
+    console.log(error);
+    return;
+  }
+}
+
 // TODO: More robust error handling that can distinguish between user code timeouts and system errors
 const statusCheckHandler = async (req, res) => {
   try {
     let key = req.params.id;
 
-    const all = await getAllFields(key);
     const status = await getField(key, 'status');
     const output = await getField(key, 'output');
+
 
     if ([null, 'sent to queue', 'pending'].includes(status) && exceedsTimeout(key)) {
 
@@ -91,9 +117,9 @@ const statusCheckHandler = async (req, res) => {
       //TODO create a spindown worker?
       //TODO call it
       //TODO call createNewWorker()
-
-      //
-      //
+      const notebookId = await getField(key, 'notebookId');
+      await restartContainerHandler(notebookId);
+      
       res.status(202).send({ "status": "critical error", "message": "Your notebook environment has been reset. If you were changing already declared variables, and you believe that your logic is correct, run your code one more time and it should work." });
 
     } else if (status === null || status === 'sent to queue' || status === 'pending') {
@@ -124,30 +150,7 @@ router.get('/test', async (req, res) => {
   res.send('testroute')
 })
 
-const restartContainerHandler = async (notebookId) => {
-  try {
-    const running = await workerRunning(notebookId);
-    const containerStopped = await containerExists(notebookId);
-    await deleteQueue(notebookId);
 
-    if (running) {
-      console.log('restarting notebook container')
-      await restartContainer(notebookId)
-    } else if (containerStopped) {
-      console.log('Notebook container was stopped. Starting')
-      await startContainer(notebookId);
-    } else {
-      console.log(`Notebook container did not exist. Creating new worker for ${notebookId}`);
-      await createNewWorker(notebookId);
-    }
-
-    console.log('container restarted')
-    return;
-  } catch (error) {
-    console.log(error);
-    return;
-  }
-}
 
 
 
