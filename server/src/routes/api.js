@@ -185,7 +185,9 @@ router.get('/test', async (req, res) => {
   res.send('testroute')
 })
 
-
+router.get('/', (req,res) => {
+  res.send('ok');
+})
 
 
 
