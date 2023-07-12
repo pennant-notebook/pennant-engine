@@ -160,6 +160,7 @@ const removeContainer = async (workerName) => {
   return container.remove();
 }
 
+
 // TODO
 /* 
 containerExists and is running ( containerActive )
@@ -174,3 +175,4 @@ const isRunning = (workerName) => {
 
 
 module.exports = { listWorkers,  containerActive, createNewWorker, getContainerByName, getContainerId, killContainer, restartContainer, isRunning , containerExists, workerRunning, startContainer, removeContainer}
+
