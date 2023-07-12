@@ -57,7 +57,6 @@ const deleteQueue = async (queueName) => {
   }
 }
 
-
 (async () => {
   await initializeConnection();
   connection.on('connect', function () {

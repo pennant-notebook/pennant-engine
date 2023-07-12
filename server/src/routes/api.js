@@ -105,13 +105,25 @@ router.post('/submit', async (req, res, next) => {
 
 
 // is the context active or not?
-router.get('/notebookstatus/:notebookId', (req, res, next) => { });
+router.get('/notebookstatus/:notebookId', async (req, res, next) => {
+  try {
+    if (!(await containerExists(req.params.notebookId))) {
+      throw createError('Notebook does not exist', 404);
+    }
+    const { notebookId } = req.params;
+    const active = await workerRunning(notebookId);
+    res.send({ notebookId, active });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+);
 
 // reset context object
 
 router.post('/reset/:notebookId', async (req, res, next) => {
   try {
-    if (! (await containerExists(req.params.notebookId))) {
+    if (!(await containerExists(req.params.notebookId))) {
       throw createError('Context could not be reset. Notebook does not exist', 404);
     }
     restartContainerHandler(req.params.notebookId)
@@ -120,9 +132,6 @@ router.post('/reset/:notebookId', async (req, res, next) => {
     sendError(res, error);
   }
 });
-
-
-
 
 
 const statusCheckHandler = async (req, res) => {
