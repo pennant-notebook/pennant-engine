@@ -1,18 +1,15 @@
 const router = require('express').Router();
-const uuid = require('uuid');
 const { randomBytes } = require('crypto');
 const { sendMessage, setupQueueForNoteBook, deleteQueue } = require('../config/rabbitmq.js');
-const { errorResponse, successResponse, getFromRedis } = require('../utils/responses.js');
+const { errorResponse } = require('../utils/responses.js');
 const { createTimestamp, exceedsTimeout } = require('../utils/executionTimeout.js');
-const { setRedisInitial, testSetHashKey, setRedisHashkey, getField, getAllFields } = require('../utils/redisHelpers.js');
+const { setRedisHashkey, getField } = require('../utils/redisHelpers.js');
 
 const { basicDataCheck } = require('../utils/basicDataCheck.js');
 
-const activeNotebooks = {}
-// const { createNewWorker } = require('../utils/workerTerminal.js');
-const { restartContainer, createNewWorker, startContainer, workerRunning, containerExists, killContainer, removeContainer, containerActive } = require('../utils/workerManager.js');
-const { send } = require('process');
+const { restartContainer, createNewWorker, startContainer, workerRunning, containerExists } = require('../utils/workerManager.js');
 
+const activeNotebooks = {}
 
 const sendError = (res, error) => {
   const statusCode = error.statusCode || 500;
@@ -185,7 +182,7 @@ router.get('/test', async (req, res) => {
   res.send('testroute')
 })
 
-router.get('/', (req,res) => {
+router.get('/', (req, res) => {
   res.send('ok');
 })
 
