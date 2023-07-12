@@ -163,4 +163,4 @@ const isRunning = (workerName) => {
 
 
 
-module.exports = { listWorkers, containerExists: containerActive, createNewWorker, getContainerByName, getContainerId, stopContainer: killContainer, restartContainer, isRunning , containerExists, workerRunning, startContainer}
+module.exports = { listWorkers, containerActive, createNewWorker, getContainerByName, getContainerId, stopContainer: killContainer, restartContainer, isRunning , containerExists, workerRunning, startContainer}

@@ -112,7 +112,6 @@ const docker = new Docker();
 router.get('/test', async (req, res) => {
 
 
-  removeContainer('looper');
   restartContainerHandler('looper')
   res.send('ok');
 })
