@@ -11,12 +11,46 @@ const { basicDataCheck } = require('../utils/basicDataCheck.js');
 const activeNotebooks = {}
 // const { createNewWorker } = require('../utils/workerTerminal.js');
 const { restartContainer, createNewWorker, startContainer, workerRunning, containerExists, killContainer, removeContainer, containerActive } = require('../utils/workerManager.js');
+const { send } = require('process');
 
 
+const sendError = (res, error) => {
+  const statusCode = error.statusCode || 500;
+  console.log(error)
+  res.status(statusCode).send(error.message);
+}
 const createError = (message, statusCode) => {
   let error = new Error(message);
   error.statusCode = statusCode;
   return error;
+}
+
+const restartContainerHandler = async (notebookId) => {
+  try {
+    const running = await workerRunning(notebookId);
+    const containerStopped = await containerExists(notebookId);
+    await deleteQueue(notebookId);
+
+    if (running) {
+      console.log('restarting notebook container')
+      await restartContainer(notebookId)
+    } else if (containerStopped) {
+      console.log('Notebook container was stopped. Starting')
+      await startContainer(notebookId);
+    }
+
+    else {
+      // ! Dangerous to create new workers. Need to make sure that the id is not null
+      // console.log(`Notebook container did not exist. Creating new worker for ${notebookId}`);
+      // await createNewWorker(notebookId);
+      throw createError('Notebook container did not exist', 404);
+    }
+
+    console.log('container restarted')
+    return;
+  } catch (error) {
+    sendError(res, error);
+  }
 }
 
 
@@ -75,49 +109,20 @@ router.get('/notebookstatus/:notebookId', (req, res, next) => { });
 
 // reset context object
 
-router.post('/reset/:notebookId', (req, res, next) => {
+router.post('/reset/:notebookId', async (req, res, next) => {
   try {
-    if (!activeNotebooks[req.params.notebookId]) {
-      throw createError('Notebook does not exist', 404);
+    if (! (await containerExists(req.params.notebookId))) {
+      throw createError('Context could not be reset. Notebook does not exist', 404);
     }
-    resetContext(req.params.notebookId);
+    restartContainerHandler(req.params.notebookId)
     res.json({ message: 'Context reset!' });
   } catch (error) {
-    console.log(error)
-    let statusCode = error.statusCode || 500;
-    res.status(statusCode).send(error.message);
+    sendError(res, error);
   }
 });
 
 
-const restartContainerHandler = async (notebookId) => {
-  try {
-    const running = await workerRunning(notebookId);
-    const containerStopped = await containerExists(notebookId);
-    await deleteQueue(notebookId);
 
-    if (running) {
-      console.log('restarting notebook container')
-      await restartContainer(notebookId)
-    } else if (containerStopped) {
-      console.log('Notebook container was stopped. Starting')
-      await startContainer(notebookId);
-    }
-
-    else {
-      // ! Dangerous to create new workers. Need to make sure that the id is not null
-      // console.log(`Notebook container did not exist. Creating new worker for ${notebookId}`);
-      // await createNewWorker(notebookId);
-      throw new Error('Notebook container did not exist');
-    }
-
-    console.log('container restarted')
-    return;
-  } catch (error) {
-    console.log(error);
-    return;
-  }
-}
 
 
 const statusCheckHandler = async (req, res) => {
@@ -143,7 +148,7 @@ const statusCheckHandler = async (req, res) => {
 
       res.status(202).send({ "status": "critical error", "message": "Your notebook environment has been reset. If you were changing already declared variables, and you believe that your logic is correct, run your code one more time and it should work." });
 
-    } else if (status === null || status === 'sent to queue' || status === 'pending') {
+    } else if (status === 'sent to queue' || status === 'pending') {
       console.log('sent to queue branch')
       res.status(202).send({ "status": "pending" });
     }
@@ -155,11 +160,7 @@ const statusCheckHandler = async (req, res) => {
       res.status(200).send(output);
     }
   } catch (error) {
-    let statusCode = error.statusCode || 500;
-    res.status(statusCode).send({
-      status: 'error',
-      message: error.message,
-    });
+    sendError(res, error);
   }
 
 }
