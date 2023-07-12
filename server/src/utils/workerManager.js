@@ -46,8 +46,10 @@ interface.handler = (output) => {
   console.log("from the cmd line", output.type + data);
 };
 
+
 const createNewWorker = (notebookId) => {
   const DOCKER_RUN_CMD = `docker run -d \
+  -m 256m --memory-swap 256m \
   --name worker.${notebookId} \
   --network dredd-network \
   -e QUEUE_NAME=${notebookId} \
