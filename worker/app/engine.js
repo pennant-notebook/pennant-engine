@@ -86,7 +86,7 @@ const executeCode = async (submissionId, cellId, code, notebookId) => {
     writableStream.end();
     console.log('arr', arr)
     updateSubmissionOutput(submissionId, cellId, isSyntaxOrRuntimeError, arr.join(''));
-
+    // await client.hset(submissionId.toString(), )
     await client.set(submissionId.toString(), JSON.stringify(getSubmissionOutput(submissionId)));
   }
 }
@@ -94,5 +94,4 @@ const executeCode = async (submissionId, cellId, code, notebookId) => {
 
 
 module.exports = { engine };
-
 

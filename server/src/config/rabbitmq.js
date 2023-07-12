@@ -1,4 +1,3 @@
-// // const amqp = require("amqplib");
 const DEFAULT_QUEUE_NAME = 'jobs'
 var amqp = require('amqp-connection-manager');
 

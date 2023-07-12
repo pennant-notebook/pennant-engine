@@ -4,12 +4,15 @@ const { randomBytes } = require('crypto');
 const { sendMessage, setupQueueForNoteBook, deleteQueue } = require('../config/rabbitmq.js');
 const { errorResponse, successResponse, getFromRedis } = require('../utils/responses.js');
 const { createTimestamp, exceedsTimeout } = require('../utils/executionTimeout.js');
+const { setRedisInitial, testSetHashKey, setRedisHashkey, getField, getAllFields } = require('../utils/redisHelpers.js');
+
 
 
 const activeNotebooks = {}
 // const { createNewWorker } = require('../utils/workerTerminal.js');
 const { restartContainer, createNewWorker, startContainer, workerRunning, containerExists, killContainer, removeContainer, containerActive } = require('../utils/workerManager.js');
 
+// TODO check if the worker is on? 
 router.post('/submit', async (req, res, next) => {
   try {
     //TODO some checks on req body if diff than shape we expect
@@ -30,6 +33,17 @@ router.post('/submit', async (req, res, next) => {
     createTimestamp(submissionId, 10000);
     console.log('apiRoutesReq.body', data)
     await sendMessage(data, notebookId);
+
+    await setRedisHashkey(submissionId, {
+      status: 'pending',
+      notebookId: notebookId,
+      timeRequested: Date.now(),
+      timeProcessed: null,
+      output: null,
+    });
+
+    // TODO set on redis: submissionId -> {status: 'pending', timestamp: Date.now(), notebookId: notebookId}
+
     res.status(202).json({
       submissionId,
     });
@@ -66,7 +80,9 @@ router.post('/reset/:notebookId', (req, res, next) => {
 const statusCheckHandler = async (req, res) => {
   try {
     let key = req.params.id;
-    let status = await getFromRedis(key);
+    let status = await getFromRedis(key);  // ! Redis shape will change
+    // ! propose:
+    // let status = await getFromRedis(key).status;  // ! Redis shape will change 
     console.log('status from redis: ', status);
     console.log('status', status)
 
@@ -91,6 +107,7 @@ const statusCheckHandler = async (req, res) => {
       res.status(202).send({ "status": "pending" });
     }
     else {
+      // ! Redis shape will change
       status = JSON.parse(status);
       res.status(200).send(successResponse(status));
     }
@@ -111,14 +128,35 @@ const docker = new Docker();
 // ! testing only
 router.get('/test', async (req, res) => {
 
+  try {
+    // removeContainer('looper');
+    // restartContainerHandler('looper')
+    // await testSetHashKey('testRoomId', {name: 'booger', age: 30});
+    await setRedisHashkey('dudewhatwhy', {
+      status: 'pendingz',
+      notebookId: 'this is a notebook id',
+      timeRequested: Date.now(),
+      timeProcessed: null,
+      output: null,
+    });
+    // await setRedisHashkey('testRoomId', 'timeRequested')
+    const watermelon = await getField('dudewhatwhy', 'status');
 
-  // removeContainer('looper');
-  restartContainerHandler('looper')
-  res.send('ok');
+    const cheeseburger = await getAllFields('dudewhatwhy');
+
+    console.log(typeof cheeseburger)
+
+
+
+    res.send(watermelon);
+  } catch (error) {
+    console.log('stuff wnet down :*( ', error)
+    res.send('not ok')
+  }
 })
 
 
-// TODO resetting context must flush queue as well
+
 const restartContainerHandler = async (notebookId) => {
   try {
     const running = await workerRunning(notebookId);
