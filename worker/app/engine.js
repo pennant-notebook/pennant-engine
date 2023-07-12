@@ -1,3 +1,5 @@
+const  SCRIPT_TIMEOUT_S = process.env.SCRIPT_TIMEOUT_S || 10;
+
 const vm = require('vm');
 const { client } = require("./config/redis.js");
 const { Console } = require('console');
@@ -56,9 +58,10 @@ const executeCode = async (submissionId, cellId, code, notebookId) => {
   context.console = customConsole;
 
   let isSyntaxOrRuntimeError = false;
+  // copilot, are you there?
 
   try {
-    await vm.runInNewContext(code, context);
+    await vm.runInNewContext(code, context, { timeout: SCRIPT_TIMEOUT_S *  1000 });
     updateContextWrapper(notebookId);
   } catch (error) {
     arr.push(String(error));
