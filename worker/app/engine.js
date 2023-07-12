@@ -8,6 +8,7 @@ const { updateSubmissionOutput, initializeSubmissionOutput, getSubmissionOutput 
 const { compileFrontendInput } = require("./utils/compileFrontendInput.js");
 //added
 const { connect } = require("./config/rabbitmq.js");
+const { setRedisHashkey } = require('./utils/redisHelpers.js');
 //above
 
 // const engine = async (submissionId, cells, notebookId) => {
@@ -87,9 +88,19 @@ const executeCode = async (submissionId, cellId, code, notebookId) => {
     console.log('arr', arr)
     updateSubmissionOutput(submissionId, cellId, isSyntaxOrRuntimeError, arr.join(''));
     // await client.hset(submissionId.toString(), )
-    await client.set(submissionId.toString(), JSON.stringify(getSubmissionOutput(submissionId)));
+    // await client.set(submissionId.toString(), JSON.stringify(getSubmissionOutput(submissionId)));
+
+    // ! contract tbd
+    console.log('output: ' , output);
+    await setRedisHashkey(submissionId.toString(), {
+      status: 'success',
+      timeProcessed: Date.now(),
+      output: getSubmissionOutput(submissionId),
+    })
   }
 }
+
+
 
 
 

@@ -32,8 +32,8 @@ router.post('/submit', async (req, res, next) => {
     const submissionId = data.folder.toString();
     createTimestamp(submissionId, 10000);
     console.log('apiRoutesReq.body', data)
+    // !TOGGLED sendMessage OFF FOR TESTING
     await sendMessage(data, notebookId);
-
     await setRedisHashkey(submissionId, {
       status: 'pending',
       notebookId: notebookId,
@@ -80,14 +80,24 @@ router.post('/reset/:notebookId', (req, res, next) => {
 const statusCheckHandler = async (req, res) => {
   try {
     let key = req.params.id;
-    let status = await getFromRedis(key);  // ! Redis shape will change
+    // let status = await getFromRedis(key);  // ! Redis shape will change
     // ! propose:
     // let status = await getFromRedis(key).status;  // ! Redis shape will change 
-    console.log('status from redis: ', status);
-    console.log('status', status)
+    // console.log('status from redis: ', status);
+    // console.log('status', status)
 
+    const status = await getField(key, 'status');
+    console.log('status 🦇', status)
+    const outputField = await getField(key, 'output');
+    const output = JSON.parse(outputField);
+
+    // !  error on exceedsTimeout
+    console.log('exceedsTimeout: ', exceedsTimeout(key));
+
+    // ! bugs with sending statuses
+    // TODO result processing needs to accomodate redis hashkeys
     //create conditional with payload of {"status": "critical error"}
-    if ((status === null || status === 'sent to queue') && exceedsTimeout(key)) {
+    if ((status === null || status === 'sent to queue' || status === 'pending' ) && exceedsTimeout(key)) {
       console.log('exceeded timeout context reset')
       //TODO create a spindown worker?
       //TODO call it
@@ -98,21 +108,25 @@ const statusCheckHandler = async (req, res) => {
 
       //
       res.status(202).send({ "status": "critical error", "message": "Your notebook environment has been reset. If you were changing already declared variables, and you believe that your logic is correct, run your code one more time and it should work." });
-    } else if (status === null || status === 'sent to queue') {
-      console.log('sent to queue')
+
+    } else if (status === null || status === 'sent to queue' || status === 'pending') {
+      console.log('sent to queue branch')
       res.status(202).send({ "status": "pending" });
     }
     else if (status == 'Processing') {
+      console.log('processing brqanch')
       console.log('processing')
       res.status(202).send({ "status": "pending" });
     }
     else {
-      // ! Redis shape will change
-      status = JSON.parse(status);
-      res.status(200).send(successResponse(status));
+      // status = JSON.parse(status);
+
+      console.log('else branch')
+      res.status(200).send(output);
     }
   } catch (error) {
-    res.status(500).send(errorResponse(500, "System error"));
+    console.log('error happend 🐈️')
+    res.status(500).send(errorResponse(500, "System error: ", error));
   }
 
 }
@@ -132,19 +146,16 @@ router.get('/test', async (req, res) => {
     // removeContainer('looper');
     // restartContainerHandler('looper')
     // await testSetHashKey('testRoomId', {name: 'booger', age: 30});
-    await setRedisHashkey('dudewhatwhy', {
-      status: 'pendingz',
-      notebookId: 'this is a notebook id',
-      timeRequested: Date.now(),
-      timeProcessed: null,
-      output: null,
-    });
+
     // await setRedisHashkey('testRoomId', 'timeRequested')
-    const watermelon = await getField('dudewhatwhy', 'status');
+    // const watermelon = await getAllFields('dc0b4e04a3cda10c2eb8')
 
-    const cheeseburger = await getAllFields('dudewhatwhy');
 
-    console.log(typeof cheeseburger)
+    // const watermelon = await getField('f5ce22c57e209a1b0aad', 'output');
+    const watermelon = await getAllFields('f5ce22c57e209a1b0aad');
+
+
+
 
 
 
@@ -173,6 +184,7 @@ const restartContainerHandler = async (notebookId) => {
       console.log(`Notebook container did not exist. Creating new worker for ${notebookId}`);
       await createNewWorker(notebookId);
     }
+
     console.log('container restarted')
     return;
   } catch (error) {
