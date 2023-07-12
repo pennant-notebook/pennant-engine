@@ -1,4 +1,3 @@
-// // const amqp = require("amqplib");
 const DEFAULT_QUEUE_NAME = 'jobs'
 var amqp = require('amqp-connection-manager');
 
@@ -49,6 +48,15 @@ const sendMessage = async (data, queueName) => {
     });
 };
 
+const deleteQueue = async (queueName) => { 
+  try {
+    await channelWrapper.deleteQueue(queueName);
+    console.log('Queue deleted: ', queueName);
+  } catch (error) {
+    console.log(`error deleting queue: ${queueName}`, error)
+  }
+}
+
 
 (async () => {
   await initializeConnection();
@@ -61,4 +69,4 @@ const sendMessage = async (data, queueName) => {
 
 })();
 
-module.exports = { sendMessage, setupQueueForNoteBook, queueExists }
+module.exports = { sendMessage, setupQueueForNoteBook, queueExists, deleteQueue }

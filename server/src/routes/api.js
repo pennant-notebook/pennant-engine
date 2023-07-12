@@ -1,17 +1,21 @@
 const router = require('express').Router();
 const uuid = require('uuid');
 const { randomBytes } = require('crypto');
-const { sendMessage, setupQueueForNoteBook } = require('../config/rabbitmq.js');
+const { sendMessage, setupQueueForNoteBook, deleteQueue } = require('../config/rabbitmq.js');
 const { errorResponse, successResponse, getFromRedis } = require('../utils/responses.js');
 const { createTimestamp, exceedsTimeout } = require('../utils/executionTimeout.js');
+const { setRedisInitial, testSetHashKey, setRedisHashkey, getField, getAllFields } = require('../utils/redisHelpers.js');
+
 const { basicDataCheck } = require('../utils/basicDataCheck.js');
 
 const activeNotebooks = {}
 // const { createNewWorker } = require('../utils/workerTerminal.js');
 const { restartContainer, createNewWorker, startContainer, workerRunning, containerExists, killContainer, removeContainer, containerActive } = require('../utils/workerManager.js');
 
+// TODO check if the worker is on? 
 router.post('/submit', async (req, res, next) => {
   let thrown = {};
+
   try {
     basicDataCheck(req, thrown);
     const { notebookId, cells } = req.body;
@@ -29,7 +33,16 @@ router.post('/submit', async (req, res, next) => {
     const submissionId = data.folder.toString();
     createTimestamp(submissionId, 10000);
     console.log('apiRoutesReq.body', data)
+
     await sendMessage(data, notebookId);
+    await setRedisHashkey(submissionId, {
+      status: 'pending',
+      notebookId: notebookId,
+      timeRequested: Date.now(),
+      timeProcessed: null,
+      output: null,
+    });
+
     res.status(202).json({
       submissionId,
     });
@@ -39,7 +52,7 @@ router.post('/submit', async (req, res, next) => {
       delete thrown.yes;
       res.status(400).send(errorResponse(400, error));
     } else {
-    res.status(500).send(errorResponse(500, "System error"));
+      res.status(500).send(errorResponse(500, "System error"));
     }
   }
 });
@@ -52,11 +65,11 @@ router.get('/notebookstatus/:notebookId', (req, res, next) => { });
 
 router.post('/reset/:notebookId', (req, res, next) => {
   try {
-    if(!activeNotebooks[req.params.notebookId]) {
+    if (!activeNotebooks[req.params.notebookId]) {
       throw 'that notebook ID does not exist'
     }
-  resetContext(req.params.notebookId);
-  res.json({ message: 'Context reset!' });
+    resetContext(req.params.notebookId);
+    res.json({ message: 'Context reset!' });
   } catch (error) {
     console.log(error)
     res.status(404).send(errorResponse(404, error));
@@ -67,60 +80,55 @@ router.post('/reset/:notebookId', (req, res, next) => {
 const statusCheckHandler = async (req, res) => {
   try {
     let key = req.params.id;
-    let status = await getFromRedis(key);
-    console.log('status from redis: ', status);
-    console.log('status', status)
 
-    //create conditional with payload of {"status": "critical error"}
-    if ((status === null || status === 'sent to queue') && exceedsTimeout(key)) {
+    const all = await getAllFields(key);
+    const status = await getField(key, 'status');
+    const output = await getField(key, 'output');
+
+    if ([null, 'sent to queue', 'pending'].includes(status) && exceedsTimeout(key)) {
+
       console.log('exceeded timeout context reset')
       //TODO create a spindown worker?
       //TODO call it
       //TODO call createNewWorker()
 
       //
-
-
       //
       res.status(202).send({ "status": "critical error", "message": "Your notebook environment has been reset. If you were changing already declared variables, and you believe that your logic is correct, run your code one more time and it should work." });
-    } else if (status === null || status === 'sent to queue') {
-      console.log('sent to queue')
+
+    } else if (status === null || status === 'sent to queue' || status === 'pending') {
+      console.log('sent to queue branch')
       res.status(202).send({ "status": "pending" });
     }
     else if (status == 'Processing') {
+      console.log('processing brqanch')
       console.log('processing')
       res.status(202).send({ "status": "pending" });
     }
     else {
-      status = JSON.parse(status);
-      res.status(200).send(successResponse(status));
+      console.log('else branch')
+      res.status(200).send(output);
     }
   } catch (error) {
-    res.status(500).send(errorResponse(500, "System error"));
+    res.status(500).send(errorResponse(500, "System error: ", error));
   }
 
 }
 router.get("/status/:id", statusCheckHandler);
 
-//added
 router.get("/results/:id", statusCheckHandler);
 
 
-const Docker = require('dockerode');
-const docker = new Docker();
 
-// ! testing only
 router.get('/test', async (req, res) => {
-
-
-  restartContainerHandler('looper')
-  res.send('ok');
+  res.send('testroute')
 })
 
 const restartContainerHandler = async (notebookId) => {
   try {
     const running = await workerRunning(notebookId);
     const containerStopped = await containerExists(notebookId);
+    await deleteQueue(notebookId);
 
     if (running) {
       console.log('restarting notebook container')
@@ -132,6 +140,7 @@ const restartContainerHandler = async (notebookId) => {
       console.log(`Notebook container did not exist. Creating new worker for ${notebookId}`);
       await createNewWorker(notebookId);
     }
+
     console.log('container restarted')
     return;
   } catch (error) {
@@ -139,13 +148,9 @@ const restartContainerHandler = async (notebookId) => {
     return;
   }
 }
-/* 
-if there's a timeout
-  - check if the container is still running
-    - if it is, stop it
-    - if it isn't, restart it
-*/
+
 router.get('/', (req,res) => {
   res.send('ok');
 })
+
 module.exports = router;

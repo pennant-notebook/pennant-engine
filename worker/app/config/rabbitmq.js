@@ -1,6 +1,5 @@
 const amqp = require("amqp-connection-manager");
 const { engine } = require('../engine.js')
-
 // QUEUE_NAME is roomId; passed during docker compose up
 // e.g., QUEUE_NAME='room24' docker compose up
 const QUEUE_NAME = process.env.QUEUE_NAME || 'jobs';
