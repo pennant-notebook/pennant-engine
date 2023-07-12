@@ -87,10 +87,14 @@ const statusCheckHandler = async (req, res) => {
     // console.log('status from redis: ', status);
     // console.log('status', status)
 
+
+const all = await getAllFields(key);
+console.log('all 🐕️', all);
     const status = await getField(key, 'status');
     console.log('status 🦇', status)
     const outputField = await getField(key, 'output');
     const output = JSON.parse(outputField);
+    console.log('🐅', output)
 
     // !  error on exceedsTimeout
     console.log('exceedsTimeout: ', exceedsTimeout(key));
@@ -105,8 +109,6 @@ const statusCheckHandler = async (req, res) => {
       //TODO call createNewWorker()
 
       //
-
-
       //
       res.status(202).send({ "status": "critical error", "message": "Your notebook environment has been reset. If you were changing already declared variables, and you believe that your logic is correct, run your code one more time and it should work." });
 

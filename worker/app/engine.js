@@ -1,53 +1,33 @@
 const vm = require('vm');
-//deleted
 const { client } = require("./config/redis.js");
-//above
 const { Console } = require('console');
 const { loadContext, resetContext, updateContextWrapper } = require('./utils/context.js');
 const { updateSubmissionOutput, initializeSubmissionOutput, getSubmissionOutput } = require('./utils/submissionOutput.js');
 const { compileFrontendInput } = require("./utils/compileFrontendInput.js");
-//added
 const { connect } = require("./config/rabbitmq.js");
-const { setRedisHashkey } = require('./utils/redisHelpers.js');
-//above
+const { setRedisHashkey, getAllFields } = require('./utils/redisHelpers.js');
+const { get } = require('http');
+console.log('Worker last updated Jul 12, 2023 10:01:35 AM ')
 
-// const engine = async (submissionId, cells, notebookId) => {
-//added
 const engine = async (apiBody, ch, msg) => {
   console.log('apiBody', apiBody)
-  //changed all notebookId and to apiBody.notebookId, all submissionId to apiBody.folder
-  //deleted
-  // client.set(apiBody.folder.toString(), 'Processing');
-  //above
+
   console.log('engineProcessing')
-  //////added
   initializeSubmissionOutput(apiBody.folder, ...apiBody.cells)
   ch.ack(msg);
-  //////above
-  //above
+
   for (let cell of apiBody.cells) {
     try {
-      // connect();
       let compiler = compileFrontendInput(cell, apiBody.notebookId);
-      // if (compiler === 'broken') break;
-      // if (compiler === 'broken') {
-      //   executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
-      // }
+
       if (compiler === 'ok') {
         resetContext(apiBody.notebookId);
-        // executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
-
       }
-      // executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
       let result = executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
       if (compiler === 'broken') {
         resetContext(apiBody.notebookId);
       }
-      //added
-      //////BUG HERE
-      // client.setex(apiBody.folder.toString(), 3600, JSON.stringify(result));
-      ////////BUG ABOVE
-      //above
+
     } catch (error) {
       console.error("running cells raised an error: ", error);
       break;
@@ -85,18 +65,15 @@ const executeCode = async (submissionId, cellId, code, notebookId) => {
     isSyntaxOrRuntimeError = true;
   } finally {
     writableStream.end();
-    console.log('arr', arr)
-    updateSubmissionOutput(submissionId, cellId, isSyntaxOrRuntimeError, arr.join(''));
-    // await client.hset(submissionId.toString(), )
-    // await client.set(submissionId.toString(), JSON.stringify(getSubmissionOutput(submissionId)));
 
-    // ! contract tbd
-    console.log('output: ' , output);
+    updateSubmissionOutput(submissionId, cellId, isSyntaxOrRuntimeError, arr.join(''));
+    const output = getSubmissionOutput(submissionId)
+
     await setRedisHashkey(submissionId.toString(), {
       status: 'success',
       timeProcessed: Date.now(),
-      output: getSubmissionOutput(submissionId),
-    })
+      output: output,
+    });
   }
 }
 

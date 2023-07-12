@@ -33,8 +33,6 @@ const convertOptionsToFields = (obj) => {
   return arr;
 }
 
-
-
 const setRedisHashkey = (submissionId, options) => {
   if (!submissionId || !options) {
     throw new Error('Error setting field values: submissionId and options must be defined');
