@@ -42,7 +42,6 @@ const setRedisHashkey = (submissionId, options) => {
   };
   const fields = convertOptionsToFields(options);
 
-  console.log(fields)
   return new Promise((resolve, reject) => {
     client.hset(submissionId, ...fields, function (err, reply) {
       if (err) {
@@ -60,7 +59,6 @@ const getField = async (key, field) => {
       if (err) {
         console.error('Error retrieving field value:', err);
       } else {
-        console.log('found: ', value)
         const parsed = JSON.parse(value);
         resolve(parsed);
       }
@@ -75,7 +73,6 @@ const getAllFields = async (key) => {
         console.error('Error retrieving hash key:', err);
         reject(err);
       } else {
-        console.log(object);
         resolve(object);
       }
     });

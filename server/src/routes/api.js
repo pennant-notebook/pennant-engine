@@ -21,11 +21,15 @@ router.post('/submit', async (req, res, next) => {
     const { notebookId, cells } = req.body;
 
     const workerExists = await containerExists(notebookId);
-    if (!activeNotebooks[notebookId] && !workerExists) {
+    const workerActive = await workerRunning(notebookId);
+    if (workerExists && !workerActive) {
+      await deleteQueue(notebookId);
+      await startContainer(notebookId);
+    } else if (!activeNotebooks[notebookId] && !workerExists) {
       createNewWorker(notebookId);
       activeNotebooks[notebookId] = true;
       //!replace with a sqL call to db
-    }
+    } 
     const data = { notebookId, cells }
     setupQueueForNoteBook(notebookId);
 
@@ -89,9 +93,13 @@ const restartContainerHandler = async (notebookId) => {
     } else if (containerStopped) {
       console.log('Notebook container was stopped. Starting')
       await startContainer(notebookId);
-    } else {
-      console.log(`Notebook container did not exist. Creating new worker for ${notebookId}`);
-      await createNewWorker(notebookId);
+    }
+
+    else {
+      // ! Dangerous to create new workers. Need to make sure that the id is not null
+      // console.log(`Notebook container did not exist. Creating new worker for ${notebookId}`);
+      // await createNewWorker(notebookId);
+      throw new Error('Notebook container did not exist');
     }
 
     console.log('container restarted')
@@ -103,13 +111,62 @@ const restartContainerHandler = async (notebookId) => {
 }
 
 // TODO: More robust error handling that can distinguish between user code timeouts and system errors
+// const statusCheckHandler = async (req, res, next) => {
+//   try {
+//     let submissionId = req.params.id;
+//     const status = await getField(submissionId, 'status');
+//     console.log(submissionId, status)
+//     if (!status) {
+//       let error = new Error('Notebook ID does not exist');
+//       error.statusCode = 404;
+//       throw error;
+//     };
+
+//     const output = await getField(submissionId, 'output');
+
+//     if (['sent to queue', 'pending'].includes(status) && exceedsTimeout(submissionId)) {
+//       console.log('exceeded timeout context reset')
+//       //TODO create a spindown worker?
+//       //TODO call it
+//       //TODO call createNewWorker()
+//       const notebookId = await getField(submissionId, 'submissionId');
+//       await restartContainerHandler(notebookId);
+
+//       res.status(202).send({ "status": "critical error", "message": "Your notebook environment has been reset. If you were changing already declared variables, and you believe that your logic is correct, run your code one more time and it should work." });
+
+//     } else if (status === 'sent to queue' || status === 'pending') {
+//       console.log('sent to queue branch')
+//       res.status(202).send({ "status": "pending" });
+//     }
+//     else if (status == 'Processing') {
+//       console.log('processing brqanch')
+//       console.log('processing')
+//       res.status(202).send({ "status": "pending" });
+//     }
+//     else {
+//       console.log('else branch')
+//       res.status(200).send(output);
+//     }
+//   } catch (error) {
+//     console.log('what is it', error)
+//     const statusCode = error.statusCode || 500;
+//     res.status(statusCode).send({ status: 'error', message: error.message });
+//   }
+// }
+
 const statusCheckHandler = async (req, res) => {
   try {
     let key = req.params.id;
 
     const status = await getField(key, 'status');
-    const output = await getField(key, 'output');
 
+    if (!status) {
+      const invalidSubmissionIdError = new Error('SubmissionId does not exist');
+      invalidSubmissionIdError.statusCode = 404;
+      throw invalidSubmissionIdError;
+    }
+
+    const output = await getField(key, 'output');
 
     if ([null, 'sent to queue', 'pending'].includes(status) && exceedsTimeout(key)) {
 
@@ -119,7 +176,7 @@ const statusCheckHandler = async (req, res) => {
       //TODO call createNewWorker()
       const notebookId = await getField(key, 'notebookId');
       await restartContainerHandler(notebookId);
-      
+
       res.status(202).send({ "status": "critical error", "message": "Your notebook environment has been reset. If you were changing already declared variables, and you believe that your logic is correct, run your code one more time and it should work." });
 
     } else if (status === null || status === 'sent to queue' || status === 'pending') {
@@ -127,19 +184,22 @@ const statusCheckHandler = async (req, res) => {
       res.status(202).send({ "status": "pending" });
     }
     else if (status == 'Processing') {
-      console.log('processing brqanch')
       console.log('processing')
       res.status(202).send({ "status": "pending" });
     }
     else {
-      console.log('else branch')
       res.status(200).send(output);
     }
   } catch (error) {
-    res.status(500).send(errorResponse(500, "System error: ", error));
+    let statusCode = error.statusCode || 500;
+    res.status(statusCode).send({
+      status: 'error',
+      message: error.message,
+    });
   }
 
 }
+
 router.get("/status/:id", statusCheckHandler);
 
 router.get("/results/:id", statusCheckHandler);
