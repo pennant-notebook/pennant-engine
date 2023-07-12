@@ -7,16 +7,15 @@ const { createTimestamp, exceedsTimeout } = require('../utils/executionTimeout.j
 const { basicDataCheck } = require('../utils/basicDataCheck.js');
 
 const activeNotebooks = {}
-const { createNewWorker } = require('../utils/workerTerminal.js');
-const { listWorkers, containerExists } = require('../utils/workerManagement.js');
-
-
+// const { createNewWorker } = require('../utils/workerTerminal.js');
+const { restartContainer, createNewWorker, startContainer, workerRunning, containerExists, killContainer, removeContainer, containerActive } = require('../utils/workerManager.js');
 
 router.post('/submit', async (req, res, next) => {
   let thrown = {};
   try {
     basicDataCheck(req, thrown);
     const { notebookId, cells } = req.body;
+
     const workerExists = await containerExists(notebookId);
     if (!activeNotebooks[notebookId] && !workerExists) {
       createNewWorker(notebookId);
@@ -69,14 +68,19 @@ const statusCheckHandler = async (req, res) => {
   try {
     let key = req.params.id;
     let status = await getFromRedis(key);
+    console.log('status from redis: ', status);
     console.log('status', status)
 
-//create conditional with payload of {"status": "critical error"}
+    //create conditional with payload of {"status": "critical error"}
     if ((status === null || status === 'sent to queue') && exceedsTimeout(key)) {
       console.log('exceeded timeout context reset')
       //TODO create a spindown worker?
       //TODO call it
       //TODO call createNewWorker()
+
+      //
+
+
       //
       res.status(202).send({ "status": "critical error", "message": "Your notebook environment has been reset. If you were changing already declared variables, and you believe that your logic is correct, run your code one more time and it should work." });
     } else if (status === null || status === 'sent to queue') {
@@ -102,16 +106,46 @@ router.get("/status/:id", statusCheckHandler);
 router.get("/results/:id", statusCheckHandler);
 
 
+const Docker = require('dockerode');
+const docker = new Docker();
 
+// ! testing only
 router.get('/test', async (req, res) => {
 
-  const workers = await listWorkers();
 
-  console.log(workers)
-  const result = await containerExists('CATMAN');
-
-  console.log(result);
+  restartContainerHandler('looper')
   res.send('ok');
 })
+
+const restartContainerHandler = async (notebookId) => {
+  try {
+    const running = await workerRunning(notebookId);
+    const containerStopped = await containerExists(notebookId);
+
+    if (running) {
+      console.log('restarting notebook container')
+      await restartContainer(notebookId)
+    } else if (containerStopped) {
+      console.log('Notebook container was stopped. Starting')
+      await startContainer(notebookId);
+    } else {
+      console.log(`Notebook container did not exist. Creating new worker for ${notebookId}`);
+      await createNewWorker(notebookId);
+    }
+    console.log('container restarted')
+    return;
+  } catch (error) {
+    console.log(error);
+    return;
+  }
+}
+/* 
+if there's a timeout
+  - check if the container is still running
+    - if it is, stop it
+    - if it isn't, restart it
+*/
+
+
 
 module.exports = router;
