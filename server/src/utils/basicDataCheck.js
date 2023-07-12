@@ -1,4 +1,8 @@
 const basicDataCheck = (req, thrown) => {
+    if (req.body.cells.length === 0) {
+        thrown.yes = true;
+      throw 'that data is in the wrong format'
+    }
 if(req.body.timeout && !(typeof req.body.timeout === "string" && !(isNaN(Number(req.body.timeout)))) &&
       !(typeof req.body.timeout === "number")    
     ) {

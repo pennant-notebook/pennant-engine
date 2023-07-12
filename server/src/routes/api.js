@@ -38,7 +38,7 @@ router.post('/submit', async (req, res, next) => {
     console.log(error);
     if (thrown.yes) {
       delete thrown.yes;
-      res.status(404).send(errorResponse(404, error));
+      res.status(400).send(errorResponse(400, error));
     } else {
     res.status(500).send(errorResponse(500, "System error"));
     }
