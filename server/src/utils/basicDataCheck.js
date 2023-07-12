@@ -1,5 +1,5 @@
 const basicDataCheck = (req, thrown) => {
-if(!(typeof req.body.timeout === "string" && !(isNaN(Number(req.body.timeout)))) &&
+if(req.body.timeout && !(typeof req.body.timeout === "string" && !(isNaN(Number(req.body.timeout)))) &&
       !(typeof req.body.timeout === "number")    
     ) {
       thrown.yes = true;
