@@ -149,6 +149,8 @@ const restartContainerHandler = async (notebookId) => {
   }
 }
 
-
+router.get('/', (req,res) => {
+  res.send('ok');
+})
 
 module.exports = router;
