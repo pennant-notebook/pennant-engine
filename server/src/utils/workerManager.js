@@ -1,3 +1,7 @@
+const NETWORK_NAME = 'dredd-network';
+const MEMORY_LIMIT = 100; // in mb;
+const SCRIPT_TIMEOUT_SECONDS = 8;
+
 const Docker = require('dockerode');
 const docker = new Docker();
 const fs = require('fs');
@@ -48,11 +52,16 @@ interface.handler = (output) => {
 
 
 const createNewWorker = (notebookId) => {
+  console.log('Deploying new worker for notebookId: ', notebookId);
+  console.log(`Memory limit is ${MEMORY_LIMIT}mb`);
+  console.log(`Script timeout is ${SCRIPT_TIMEOUT_SECONDS} seconds`);
+
   const DOCKER_RUN_CMD = `docker run -d \
-  -m 256m --memory-swap 256m \
+  -m ${MEMORY_LIMIT}m --memory-swap ${MEMORY_LIMIT}m \
   --name worker.${notebookId} \
-  --network dredd-network \
+  --network ${NETWORK_NAME} \
   -e QUEUE_NAME=${notebookId} \
+  -e SCRIPT_TIMEOUT_S=${SCRIPT_TIMEOUT_SECONDS} \
   -v ./app \
   -w /app \
   node-worker`;
