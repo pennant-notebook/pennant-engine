@@ -15,41 +15,40 @@ function wait(ms) {
   }
 }
 
-var interface = {
+const terminalInterface = {
   terminal: child_process.spawn('/bin/sh'),
   handler: console.log,
   send: (data) => {
-    interface.terminal.stdin.write(data + '\n');
+    terminalInterface.terminal.stdin.write(data + '\n');
   },
   cwd: () => {
-    let cwd = fs.readlinkSync('/proc/' + interface.terminal.pid + '/cwd');
-    interface.handler({ type: 'cwd', data: cwd });
+    let cwd = fs.readlinkSync('/proc/' + terminalInterface.terminal.pid + '/cwd');
+    terminalInterface.handler({ type: 'cwd', data: cwd });
   }
 };
 
 // Handle Data
-interface.terminal.stdout.on('data', (buffer) => {
-  interface.handler({ type: 'data', data: buffer });
+terminalInterface.terminal.stdout.on('data', (buffer) => {
+  terminalInterface.handler({ type: 'data', data: buffer });
 });
 
 // Handle Error
-interface.terminal.stderr.on('data', (buffer) => {
-  interface.handler({ type: 'error', data: buffer });
+terminalInterface.terminal.stderr.on('data', (buffer) => {
+  terminalInterface.handler({ type: 'error', data: buffer });
 });
 
 // Handle Closure
-interface.terminal.on('close', () => {
-  interface.handler({ type: 'closure', data: null });
+terminalInterface.terminal.on('close', () => {
+  terminalInterface.handler({ type: 'closure', data: null });
 });
 
 //USE INTERFACE
 //! spin up another docker worker here
-interface.handler = (output) => {
+terminalInterface.handler = (output) => {
   let data = '';
   if (output.data) data += ': ' + output.data.toString();
   console.log("from the cmd line", output.type + data);
 };
-
 
 const createNewWorker = (notebookId) => {
   console.log('Deploying new worker for notebookId: ', notebookId);
@@ -66,10 +65,10 @@ const createNewWorker = (notebookId) => {
   -w /app \
   node-worker`;
 
-  interface.send('cd ../worker')
-  interface.send('pwd');
+  terminalInterface.send('cd ../worker')
+  terminalInterface.send('pwd');
   wait(10);  //.01 seconds in milliseconds
-  interface.send(DOCKER_RUN_CMD);
+  terminalInterface.send(DOCKER_RUN_CMD);
   wait(10);  //.01 seconds in milliseconds
 }
 
@@ -93,13 +92,13 @@ const containerActive = async (notebookId) => {
 
 // List all containers, running or stopped
 const containerExists = async (notebookId) => {
-  const workerNames = await listWorkers({ all: true});
+  const workerNames = await listWorkers({ all: true });
   return workerNames.map(workerName => workerName.split('.')[1]).includes(notebookId);
 };
 
 const getContainerByName = async (workerName) => {
   return new Promise((resolve, reject) => {
-    docker.listContainers({all: true}, (err, containers) => {
+    docker.listContainers({ all: true }, (err, containers) => {
       if (err) {
         reject(err);
       }
@@ -184,4 +183,4 @@ const isRunning = (workerName) => {
 
 
 
-module.exports = { listWorkers,  containerActive, createNewWorker, getContainerByName, getContainerId, killContainer, restartContainer, isRunning , containerExists, workerRunning, startContainer, removeContainer}
+module.exports = { listWorkers, containerActive, createNewWorker, getContainerByName, getContainerId, killContainer, restartContainer, isRunning, containerExists, workerRunning, startContainer, removeContainer }
