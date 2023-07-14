@@ -1,10 +1,14 @@
 const amqp = require("amqp-connection-manager");
 const { engine } = require('../engine.js')
-// QUEUE_NAME is roomId; passed during docker compose up
-// e.g., QUEUE_NAME='room24' docker compose up
-const QUEUE_NAME = process.env.QUEUE_NAME || 'jobs';
-console.log("QUEUE_NAME IS ", QUEUE_NAME);
-const connection = amqp.connect(['amqp://rabbitmq-dredd:5672']);
+
+// notebookId / roomId
+const QUEUE_NAME = process.env.QUEUE_NAME;
+const QUEUE_HOST = process.env.QUEUE_HOST;
+const QUEUE_PORT = process.env.QUEUE_PORT;
+
+console.log("Establishing connection to broker ", QUEUE_HOST, QUEUE_PORT);
+console.log("Queue name is: ", QUEUE_NAME);
+const connection = amqp.connect([`${QUEUE_HOST}:${QUEUE_PORT}`]);
 
 connection.on('connect', function () {
     console.log('Connected on back!');
