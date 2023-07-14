@@ -24,7 +24,7 @@ const extractVariables = (inputString) => {
         let target = variable[0].match(/(const|let|var)/);
         let cleaned = variable[0].replace(/(const|let|var)\s+/, "");
         let collected = cleaned.slice(0, cleaned.length-2)
-        return {type: target, name: collected};
+        return {type: target[0], name: collected};
     })
 
     console.log(variables);
