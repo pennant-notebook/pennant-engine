@@ -24,9 +24,9 @@ const contextStore = {
     }
   }
   
-  const variableMap = {};
+  let variableMap = {'const': {}, 'var': {}, 'let': {}};
   const cellsRun = {};
-  const flagged = {};
+  const declaredAt = {};
   const changedVariables = {}
   
   const updateVariableMap = (variable, value) => {
@@ -37,8 +37,8 @@ const contextStore = {
     cellsRun[cellId] = value
   }
   
-  const updateFlagged = (variable) => {
-    flagged[variable] = true;
+  const updateDeclaredAt = (variable) => {
+    declaredAt[variable] = true;
   }
   
   const updateChangedVariables = (variable, cellId) => {
@@ -53,8 +53,8 @@ const contextStore = {
     return cellsRun;
   }
   
-  const getFlagged = () => {
-    return flagged;
+  const getDeclaredAt = () => {
+    return declaredAt;
   }
   
   const getChangedVariables = () => {
@@ -81,13 +81,14 @@ const contextStore = {
     contextStore[notebookId].active = false;
     contextStore[notebookId].context = {};
     //resets the in-memory state of context in engine.js
-    for (var member in variableMap) delete variableMap[member];
+    // for (var member in variableMap) delete variableMap[member];
+    variableMap = {'const': {}, 'var': {}, 'let': {}};
     for (var member in cellsRun) delete cellsRun[member];
-    for (var member in flagged) delete flagged[member];
+    for (var member in declaredAt) delete declaredAt[member];
   }
   
   const updateContextWrapper = (notebookId) => {
     contextStore[notebookId].lastUpdate = Date.now();
   }
   
-  module.exports = { loadContext, updateContextWrapper, resetContext, getVariableMap, getCellsRun, getFlagged, getChangedVariables, updateVariableMap, updateCellsRun, updateFlagged, updateChangedVariables};
+  module.exports = { loadContext, updateContextWrapper, resetContext, getVariableMap, getCellsRun, getDeclaredAt, getChangedVariables, updateVariableMap, updateCellsRun, updateDeclaredAt, updateChangedVariables};

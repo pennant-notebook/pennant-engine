@@ -20,14 +20,19 @@ const engine = async (apiBody, ch, msg) => {
 
   for (let cell of apiBody.cells) {
     try {
-      let compiler = compileFrontendInput(cell);
-
-      if (compiler === 'ok') {
-        resetContext(apiBody.notebookId);
+      let compiler = compileFrontendInput(cell, apiBody.notebookId);
+console.log('COMPILER', compiler);
+      if (compiler === 'reset') {
+        console.log('RESETRESETUP')
+        // resetContext(apiBody.notebookId);
       }
       let result = executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
-      if (compiler === 'broken') {
-        resetContext(apiBody.notebookId);
+      if (compiler === 'reset') {
+        console.log('RESETRESET')
+        setTimeout(() => {
+          resetContext(apiBody.notebookId);
+        }, 2000)
+        
       }
 
     } catch (error) {

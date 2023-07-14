@@ -21,11 +21,13 @@ const extractVariables = (inputString) => {
 //   ]
 
     const variables = array.map(variable => {
+        let target = variable[0].match(/(const|let|var)/);
         let cleaned = variable[0].replace(/(const|let|var)\s+/, "");
         let collected = cleaned.slice(0, cleaned.length-2)
-        return collected;
+        return {type: target, name: collected};
     })
 
+    console.log(variables);
     const regexp2 = /=\s\S+/g;
     const array2 = [...inputString.matchAll(regexp2)];
 
