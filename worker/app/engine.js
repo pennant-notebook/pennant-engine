@@ -24,16 +24,19 @@ const engine = async (apiBody, ch, msg) => {
 console.log('COMPILER', compiler);
       if (compiler === 'reset') {
         console.log('RESETRESETUP')
-        // resetContext(apiBody.notebookId);
+        //!
+        resetContext(apiBody.notebookId);
+        console.log('reset context first')
       }
       let result = executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
-      if (compiler === 'reset') {
-        console.log('RESETRESET')
-        setTimeout(() => {
-          resetContext(apiBody.notebookId);
-        }, 2000)
+      //!
+      // if (compiler === 'reset') {
+      //   console.log('RESETRESET')
+      //   setTimeout(() => {
+      //     resetContext(apiBody.notebookId);
+      //   }, 2000)
         
-      }
+      // }
 
     } catch (error) {
       console.error("running cells raised an error: ", error);
