@@ -1,4 +1,10 @@
-const NETWORK_NAME = 'dredd-network';
+const { NETWORK_NAME,
+  WORKER_QUEUE_HOST,
+  WORKER_QUEUE_PORT,
+  WORKER_REDIS_HOST,
+  WORKER_REDIS_PORT
+} = require('../config');
+
 const MEMORY_LIMIT = 100; // in mb;
 const SCRIPT_TIMEOUT_SECONDS = 8;
 
@@ -61,6 +67,10 @@ const createNewWorker = (notebookId) => {
   --network ${NETWORK_NAME} \
   -e QUEUE_NAME=${notebookId} \
   -e SCRIPT_TIMEOUT_S=${SCRIPT_TIMEOUT_SECONDS} \
+  -e QUEUE_HOST=${WORKER_QUEUE_HOST} \
+  -e QUEUE_PORT=${WORKER_QUEUE_PORT} \
+  -e REDIS_HOST=${WORKER_REDIS_HOST} \
+  -e REDIS_PORT=${WORKER_REDIS_PORT} \
   -v ./app \
   -w /app \
   node-worker`;
