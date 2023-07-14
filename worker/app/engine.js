@@ -20,7 +20,7 @@ const engine = async (apiBody, ch, msg) => {
 
   for (let cell of apiBody.cells) {
     try {
-      let compiler = compileFrontendInput(cell, apiBody.notebookId);
+      let compiler = compileFrontendInput(cell);
 
       if (compiler === 'ok') {
         resetContext(apiBody.notebookId);
