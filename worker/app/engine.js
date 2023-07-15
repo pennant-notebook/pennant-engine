@@ -9,7 +9,7 @@ const { compileFrontendInput } = require("./utils/compileFrontendInput.js");
 const { connect } = require("./config/rabbitmq.js");
 const { setRedisHashkey, getAllFields } = require('./utils/redisHelpers.js');
 const { get } = require('http');
-console.log('Worker last updated Jul 14, 2023 12:14:35 PM ')
+console.log('Worker last updated Jul 15, 2023 12:12:55 PM')
 
 
 
@@ -22,25 +22,8 @@ const engine = async (apiBody, ch, msg) => {
 
   for (let cell of apiBody.cells) {
     try {
-      let compiler = compileFrontendInput(cell, apiBody.notebookId);
-      console.log('COMPILER 💀', compiler);
-
-      // if (compiler === 'reset') {
-      //   console.log('RESETRESETUP')
-      //   //!
-      //   resetContext(apiBody.notebookId);
-      //   console.log('reset context first')
-      // }
-
-      let result = executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
-      //!
-      // if (compiler === 'reset') {
-      //   console.log('RESETRESET')
-      //   setTimeout(() => {
-      //     resetContext(apiBody.notebookId);
-      //   }, 2000)
-
-      // }
+      compileFrontendInput(cell, apiBody.notebookId);
+      executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
 
     } catch (error) {
       console.error("running cells raised an error: ", error);
@@ -70,7 +53,6 @@ const executeCode = async (submissionId, cellId, code, notebookId) => {
   context.console = customConsole;
 
   let isSyntaxOrRuntimeError = false;
-  // copilot, are you there?
 
   try {
     await vm.runInNewContext(code, context, { timeout: SCRIPT_TIMEOUT_S * 1000 });

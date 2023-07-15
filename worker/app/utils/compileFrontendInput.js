@@ -1,7 +1,7 @@
-const { resetContext, getVariableMap, getCellsRun, getDeclaredAt, getChangedVariables, updateVariableMap, updateCellsRun, updateDeclaredAt, updateChangedVariables, varDeclaredInThisCell, typeofDeclaration, setVarInMap, getVarFromMapV2, getVarMapV2 } = require('./context');
+const { resetContext, getVariableMap, getCellsRun, getDeclaredAt, getChangedVariables, updateVariableMap, updateCellsRun, updateDeclaredAt, updateChangedVariables, varDeclaredInThisCell, typeofDeclaration, setVarInMap, getVarMapV2 } = require('./context');
 const { extractVariables } = require("./extractVariables");
 
-const findKeywordIdx = (variableName, cellVariables) => {
+const findKeywordStartEndIdx = (variableName, cellVariables) => {
   for (let i = 0; i < cellVariables.length; i++) {
     let varName = cellVariables[i].name;
     if (varName === variableName) {
@@ -35,10 +35,10 @@ const compileFrontendInput = (cell) => {
       console.log('Doing nothing for now. Allow syntax error to be thrown.')
 
     } else if (declarationType === 'let') {
-      const [start, end] = findKeywordIdx(candidateVariable.name, scriptVariables);
+      const [start, end] = findKeywordStartEndIdx(candidateVariable.name, scriptVariables);
 
       if (start === -1) {
-        console.error(`No declaration present for ${candidateVariable.name} / or it is an object destructuring (let)`);
+        console.error(`Variable extraction did not produce keyword ${candidateVariable.name}`);
         continue;
       };
       codeContentCopy = replaceWithWhitespace(codeContentCopy, start, end);

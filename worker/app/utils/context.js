@@ -132,7 +132,6 @@ module.exports = {
 
   setVarInMap,
   varDeclaredInThisCell,
-  getVarFromMapV2,
   typeofDeclaration,
   getVarMapV2,
 };

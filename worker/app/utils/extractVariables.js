@@ -1,7 +1,6 @@
 const esprima = require('esprima');
 
 function extractVariables(code) {
-  console.log('passed into extract variables: ', code)
   try {
     const ast = esprima.parseScript(code, { range: true, comment: false });
     const declarations = ast.body
