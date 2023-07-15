@@ -33,7 +33,7 @@ let variableMap = { 'const': {}, 'var': {}, 'let': {} };
 // }
 let variableMapV2 = {};
 
-const setVarInMapV2 = (variable, declaration, cellId) => {
+const setVarInMap = (variable, declaration, cellId) => {
   if (variableMapV2[variable]) {
     console.log(`variable ${variable} already exists in variableMapV2`);
     return;
@@ -116,9 +116,6 @@ const loadContext = (notebookId) => {
 const resetContext = (notebookId) => {
   contextStore[notebookId].active = false;
   contextStore[notebookId].context = {};
-  //resets the in-memory state of context in engine.js
-  // for (var member in variableMap) delete variableMap[member];
-  variableMap = { 'const': {}, 'var': {}, 'let': {} };
   variableMapV2 = {};
 
 
@@ -133,7 +130,7 @@ const updateContextWrapper = (notebookId) => {
 module.exports = {
   loadContext, updateContextWrapper, resetContext, getVariableMap, getCellsRun, getDeclaredAt, getChangedVariables, updateVariableMap, updateCellsRun, updateDeclaredAt, updateChangedVariables,
 
-  setVarInMapV2,
+  setVarInMap,
   varDeclaredInThisCell,
   getVarFromMapV2,
   typeofDeclaration,
