@@ -162,7 +162,7 @@ const restartContainer = async (workerName) => {
 const startContainer = async (workerName) => {
   const id = await getContainerId(workerName);
 
-  if (!id || workerRunning(workerName)) {
+  if (!id || await workerRunning(workerName)) {
     console.log(`Starting container failed. Container either does not exist or is already running`);
     return null;
   };
