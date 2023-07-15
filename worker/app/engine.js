@@ -34,6 +34,8 @@ const engine = async (apiBody, ch, msg) => {
 
       let result = executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
       //!
+      client.setEx(apiBody.folder.toString(), 3600, JSON.stringify(result.output))
+      ch.ack(msg);
       // if (compiler === 'reset') {
       //   console.log('RESETRESET')
       //   setTimeout(() => {
