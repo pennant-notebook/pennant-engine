@@ -1,4 +1,4 @@
-const  SCRIPT_TIMEOUT_S = process.env.SCRIPT_TIMEOUT_S || 10;
+const SCRIPT_TIMEOUT_S = process.env.SCRIPT_TIMEOUT_S || 10;
 
 const vm = require('vm');
 const { client } = require("./config/redis.js");
@@ -9,7 +9,9 @@ const { compileFrontendInput } = require("./utils/compileFrontendInput.js");
 const { connect } = require("./config/rabbitmq.js");
 const { setRedisHashkey, getAllFields } = require('./utils/redisHelpers.js');
 const { get } = require('http');
-console.log('Worker last updated Jul 12, 2023 10:01:35 AM ')
+console.log('Worker last updated Jul 14, 2023 12:14:35 PM ')
+
+
 
 const engine = async (apiBody, ch, msg) => {
   console.log('apiBody', apiBody)
@@ -21,13 +23,15 @@ const engine = async (apiBody, ch, msg) => {
   for (let cell of apiBody.cells) {
     try {
       let compiler = compileFrontendInput(cell, apiBody.notebookId);
-console.log('COMPILER', compiler);
-      if (compiler === 'reset') {
-        console.log('RESETRESETUP')
-        //!
-        resetContext(apiBody.notebookId);
-        console.log('reset context first')
-      }
+      console.log('COMPILER 💀', compiler);
+
+      // if (compiler === 'reset') {
+      //   console.log('RESETRESETUP')
+      //   //!
+      //   resetContext(apiBody.notebookId);
+      //   console.log('reset context first')
+      // }
+
       let result = executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
       //!
       // if (compiler === 'reset') {
@@ -35,7 +39,7 @@ console.log('COMPILER', compiler);
       //   setTimeout(() => {
       //     resetContext(apiBody.notebookId);
       //   }, 2000)
-        
+
       // }
 
     } catch (error) {
@@ -69,7 +73,7 @@ const executeCode = async (submissionId, cellId, code, notebookId) => {
   // copilot, are you there?
 
   try {
-    await vm.runInNewContext(code, context, { timeout: SCRIPT_TIMEOUT_S *  1000 });
+    await vm.runInNewContext(code, context, { timeout: SCRIPT_TIMEOUT_S * 1000 });
     updateContextWrapper(notebookId);
   } catch (error) {
     arr.push(String(error));
