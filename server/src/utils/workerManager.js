@@ -50,6 +50,16 @@ terminalInterface.handler = (output) => {
   console.log("from the cmd line", output.type + data);
 };
 
+const removeAllDockerContainers = () => {
+  terminalInterface.send('cd ..')
+  terminalInterface.send('pwd');
+  terminalInterface.send(`docker stop $(docker ps -a | grep -v "redis-dredd" | grep -v "rabbitmq-dredd" | cut -d ' ' -f1)`);
+  
+  wait(3000*60)
+  terminalInterface.send(`docker rm $(docker ps -a | grep -v "redis-dredd" | grep -v "rabbitmq-dredd" | cut -d ' ' -f1)`);
+
+}
+
 const createNewWorker = (notebookId) => {
   console.log('Deploying new worker for notebookId: ', notebookId);
   console.log(`Memory limit is ${MEMORY_LIMIT}mb`);
@@ -183,4 +193,4 @@ const isRunning = (workerName) => {
 
 
 
-module.exports = { listWorkers, containerActive, createNewWorker, getContainerByName, getContainerId, killContainer, restartContainer, isRunning, containerExists, workerRunning, startContainer, removeContainer }
+module.exports = { removeAllDockerContainers, listWorkers, containerActive, createNewWorker, getContainerByName, getContainerId, killContainer, restartContainer, isRunning, containerExists, workerRunning, startContainer, removeContainer }

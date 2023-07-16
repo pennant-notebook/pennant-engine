@@ -1,7 +1,12 @@
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const {removeAllDockerContainers} = require('./utils/workerManager')
+const schedule = require('node-schedule');
 
+schedule.scheduleJob('0 0 * * *', () => { removeAllDockerContainers();}) // run everyday at midnight
+
+// removeAllDockerContainers();
 const app = express();
 app.use(morgan('dev'));
 app.use(cors());
