@@ -50,6 +50,18 @@ terminalInterface.handler = (output) => {
   console.log("from the cmd line", output.type + data);
 };
 
+const flushRedis = () => {
+  console.log('DONE DONE DONE DONE')
+  terminalInterface.send('cd ..')
+  terminalInterface.send('pwd');
+  // terminalInterface.send('/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
+  terminalInterface.send('docker-compose exec -it redis-dredd redis-cli')
+  wait(5000)
+  terminalInterface.send('FLUSHALL')
+  wait(5000)
+  console.log('DONE DONE DONE DONE')
+}
+
 const removeAllDockerContainers = () => {
   terminalInterface.send('cd ..')
   terminalInterface.send('pwd');
@@ -193,4 +205,4 @@ const isRunning = (workerName) => {
 
 
 
-module.exports = { removeAllDockerContainers, listWorkers, containerActive, createNewWorker, getContainerByName, getContainerId, killContainer, restartContainer, isRunning, containerExists, workerRunning, startContainer, removeContainer }
+module.exports = { flushRedis, removeAllDockerContainers, listWorkers, containerActive, createNewWorker, getContainerByName, getContainerId, killContainer, restartContainer, isRunning, containerExists, workerRunning, startContainer, removeContainer }
