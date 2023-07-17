@@ -1,6 +1,9 @@
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const { dailyCleanup } = require('./utils/cleanup');
+
+dailyCleanup();
 const { PORT } = require('./config');
 
 const app = express();

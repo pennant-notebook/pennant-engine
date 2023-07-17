@@ -1,15 +1,17 @@
-const  SCRIPT_TIMEOUT_S = process.env.SCRIPT_TIMEOUT_S || 10;
+const SCRIPT_TIMEOUT_S = process.env.SCRIPT_TIMEOUT_S || 10;
 
 const vm = require('vm');
 const { client } = require("./config/redis.js");
 const { Console } = require('console');
 const { loadContext, resetContext, updateContextWrapper } = require('./utils/context.js');
 const { updateSubmissionOutput, initializeSubmissionOutput, getSubmissionOutput } = require('./utils/submissionOutput.js');
-const { compileFrontendInput } = require("./utils/compileFrontendInput.js");
+const { compileFrontendInput, setVariablesInMap } = require("./utils/compileFrontendInput.js");
 const { connect } = require("./config/rabbitmq.js");
 const { setRedisHashkey, getAllFields } = require('./utils/redisHelpers.js');
 const { get } = require('http');
-console.log('Worker last updated Jul 12, 2023 10:01:35 AM ')
+console.log('Worker last updated Jul 15, 2023 12:12:55 PM')
+
+
 
 const engine = async (apiBody, ch, msg) => {
   console.log('apiBody', apiBody)
@@ -20,15 +22,8 @@ const engine = async (apiBody, ch, msg) => {
 
   for (let cell of apiBody.cells) {
     try {
-      let compiler = compileFrontendInput(cell);
-
-      if (compiler === 'ok') {
-        resetContext(apiBody.notebookId);
-      }
-      let result = executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
-      if (compiler === 'broken') {
-        resetContext(apiBody.notebookId);
-      }
+      compileFrontendInput(cell, apiBody.notebookId);
+      executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
 
     } catch (error) {
       console.error("running cells raised an error: ", error);
@@ -58,10 +53,10 @@ const executeCode = async (submissionId, cellId, code, notebookId) => {
   context.console = customConsole;
 
   let isSyntaxOrRuntimeError = false;
-  // copilot, are you there?
 
   try {
-    await vm.runInNewContext(code, context, { timeout: SCRIPT_TIMEOUT_S *  1000 });
+    await vm.runInNewContext(code, context, { timeout: SCRIPT_TIMEOUT_S * 1000 });
+    setVariablesInMap(cellId);
     updateContextWrapper(notebookId);
   } catch (error) {
     arr.push(String(error));

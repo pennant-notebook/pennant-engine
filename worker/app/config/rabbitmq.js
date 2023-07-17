@@ -11,41 +11,44 @@ console.log("Queue name is: ", QUEUE_NAME);
 const connection = amqp.connect([`${QUEUE_HOST}:${QUEUE_PORT}`]);
 
 connection.on('connect', function () {
-    console.log('Connected on back!');
+  console.log('Connected on back!');
 });
 
 connection.on('disconnect', function (err) {
-    console.log('Disconnected on back.', err);
+  console.log('Disconnected on back.', err);
 });
 
 const onMessage = (data) => {
-//push a status change to redis?
+  try {
     let message = JSON.parse(data.content.toString());
     console.log('inQueueMessage', message);
     engine(message, channelWrapper, data);
+  } catch (error) {
+    console.error('Error parsing JSON:', error);
+  }
 }
 
 // Set up a channel listening for messages in the queue.
 
 const channelWrapper = connection.createChannel({
-    setup: function (channel) {
-        // `channel` here is a regular amqplib `ConfirmChannel`.
-        return Promise.all([
-            channel.assertQueue(QUEUE_NAME, { durable: true }),
-            channel.prefetch(1),
-            channel.consume(QUEUE_NAME, onMessage)
-        ]);
-    }
+  setup: function (channel) {
+    // `channel` here is a regular amqplib `ConfirmChannel`.
+    return Promise.all([
+      channel.assertQueue(QUEUE_NAME, { durable: true }),
+      channel.prefetch(1),
+      channel.consume(QUEUE_NAME, onMessage)
+    ]);
+  }
 });
 
 const listenMessage = async (data) => {
-channelWrapper.waitForConnect()
+  channelWrapper.waitForConnect()
     .then(function () {
-        console.log("Listening for messages");
+      console.log("Listening for messages");
     });
 };
 
 
 
 
-module.exports = {listenMessage}
+module.exports = { listenMessage }

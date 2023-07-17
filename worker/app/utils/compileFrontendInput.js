@@ -1,31 +1,60 @@
-const { resetContext, getVariableMap, getCellsRun, getFlagged, getChangedVariables, updateVariableMap, updateCellsRun, updateFlagged, updateChangedVariables } = require('./context');
-const {extractVariables} = require("./extractVariables");
+const { resetContext, getVariableMap, getCellsRun, getDeclaredAt, getChangedVariables, updateVariableMap, updateCellsRun, updateDeclaredAt, updateChangedVariables, varDeclaredInThisCell, typeofDeclaration, setVarInMap, getVarMapV2 } = require('./context');
+const { extractVariables } = require("./extractVariables");
 
-const variableMap = getVariableMap();
-const cellsRun = getCellsRun();
-const flagged = getFlagged();
-const changedVariables = getChangedVariables()
-
-const compileFrontendInput = (cell) => {
-//third, extract all variables from the current cell
-const cellVariables = extractVariables(cell.code);
-
-  //first replace all instances of const and var and let with ' '
-      if (cell.code.match(/\bconst\b/)) {
-        console.log('cell.code after', cell.code)
-        cell.code = cell.code.replace(/const/g, '');
-        console.log('cell.code after', cell.code)
-        }
-      if (cell.code.match(/\bvar\b/)) {
-      cell.code = cell.code.replace(/var/g, '');
-      }
-      if (cell.code.match(/\blet\b/)) {
-        cell.code = cell.code.replace(/let/g, '');
-        }
-//second make sure the variables are in the variable map so can be accessed throughout the environment
-          cellVariables.variables.forEach((variable, index) => {
-              updateVariableMap(variable, true);
-          })
+const findKeywordStartEndIdx = (variableName, cellVariables) => {
+  for (let i = 0; i < cellVariables.length; i++) {
+    let varName = cellVariables[i].name;
+    if (varName === variableName) {
+      // ! Object destructuring reassignments are not supported in this version
+      if (cellVariables[i].decPattern === 'ObjectPattern') break;
+      return [cellVariables[i].decStart, cellVariables[i].decStart + cellVariables[i].type.length];
+    }
+  }
+  return [-1, -1];
 }
 
-module.exports = {compileFrontendInput};
+const replaceWithWhitespace = (codeContent, startIdx, endIdx) => {
+  let whitespace = ' '.repeat(endIdx - startIdx);
+  return codeContent.slice(0, startIdx) + whitespace + codeContent.slice(endIdx);
+}
+
+let currentVariables;
+const compileFrontendInput = (cell) => {
+  currentVariables = extractVariables(cell.code);
+  let codeContentCopy = cell.code.slice();
+
+  for (let i = 0; i < currentVariables.length; i++) {
+    const candidateVariable = currentVariables[i];
+    const exists = varDeclaredInThisCell(candidateVariable.name, cell.cellId);
+
+    if (!exists) continue;
+
+    const declarationType = typeofDeclaration(candidateVariable.name);
+
+    if (declarationType === 'const') {
+      console.log(`${candidateVariable.name} is a const`);
+      console.log('Doing nothing for now. Allow syntax error to be thrown.')
+
+    } else if (declarationType === 'let') {
+      const [start, end] = findKeywordStartEndIdx(candidateVariable.name, currentVariables);
+
+      if (start === -1) {
+        console.error(`Variable extraction did not produce keyword ${candidateVariable.name}`);
+        continue;
+      };
+      codeContentCopy = replaceWithWhitespace(codeContentCopy, start, end);
+    };
+  }
+
+  cell.code = codeContentCopy;
+
+}
+
+const setVariablesInMap = (cellId) => {
+  currentVariables.forEach(variable => {
+    setVarInMap(variable.name, variable.type, cellId);
+  });
+  currentVariables = [];
+}
+
+module.exports = { compileFrontendInput, setVariablesInMap};
