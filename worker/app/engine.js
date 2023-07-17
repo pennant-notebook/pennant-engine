@@ -5,7 +5,7 @@ const { client } = require("./config/redis.js");
 const { Console } = require('console');
 const { loadContext, resetContext, updateContextWrapper } = require('./utils/context.js');
 const { updateSubmissionOutput, initializeSubmissionOutput, getSubmissionOutput } = require('./utils/submissionOutput.js');
-const { compileFrontendInput } = require("./utils/compileFrontendInput.js");
+const { compileFrontendInput, setVariablesInMap } = require("./utils/compileFrontendInput.js");
 const { connect } = require("./config/rabbitmq.js");
 const { setRedisHashkey, getAllFields } = require('./utils/redisHelpers.js');
 const { get } = require('http');
@@ -56,6 +56,7 @@ const executeCode = async (submissionId, cellId, code, notebookId) => {
 
   try {
     await vm.runInNewContext(code, context, { timeout: SCRIPT_TIMEOUT_S * 1000 });
+    setVariablesInMap(cellId);
     updateContextWrapper(notebookId);
   } catch (error) {
     arr.push(String(error));
