@@ -6,6 +6,7 @@ const Docker = require('dockerode');
 const docker = new Docker();
 const fs = require('fs');
 const child_process = require('child_process');
+const { deleteQueue } = require('../config/rabbitmq');
 
 function wait(ms) {
   var start = new Date().getTime();
@@ -62,13 +63,35 @@ const flushRedis = () => {
   console.log('DONE DONE DONE DONE')
 }
 
-const removeAllDockerContainers = () => {
-  terminalInterface.send('cd ..')
-  terminalInterface.send('pwd');
-  terminalInterface.send(`docker stop $(docker ps -a | grep -v "redis-dredd" | grep -v "rabbitmq-dredd" | cut -d ' ' -f1)`);
+const removeAllDockerContainers = async () => {
+  await listWorkers({all: true}).then((containers) => {
+    console.log('containers', containers);
+    containers.forEach(id => {
+      removeContainer(id.slice(8));
+})
+}).then(() => {for (var member in activeNotebooks) delete activeNotebooks[member];})
+
+      // console.log('id', id);
+      // const container = docker.getContainer(id).then(() =>{
+      // console.log('container', container);
+      // }).then(() => {
+      //   return container.remove();
+      // })
+      // ;
+
+
+      // console.log(container);
+      // return container.remove();
+      // container.remove({
+      //   force: true
+      //  })
+   
+  // terminalInterface.send('cd ..')
+  // terminalInterface.send('pwd');
+  // terminalInterface.send(`docker stop $(docker ps -a | grep -v "redis-dredd" | grep -v "rabbitmq-dredd" | cut -d ' ' -f1)`);
   
-  wait(3000*60)
-  terminalInterface.send(`docker rm $(docker ps -a | grep -v "redis-dredd" | grep -v "rabbitmq-dredd" | cut -d ' ' -f1)`);
+  // wait(3000*60)
+  // terminalInterface.send(`docker rm $(docker ps -a | grep -v "redis-dredd" | grep -v "rabbitmq-dredd" | cut -d ' ' -f1)`);
 
 }
 
@@ -183,13 +206,15 @@ const workerRunning = async (workerName) => {
 }
 
 const removeContainer = async (workerName) => {
+  console.log('workerName', workerName);
+  await deleteQueue(workerName);
   const id = await getContainerId(workerName);
   if (!id) {
     console.log(`Removing container failed. Container not found: /worker.${workerName}`);
     return null;
   };
   const container = docker.getContainer(id);
-  return container.remove();
+  return container.remove({force: true});
 }
 
 // TODO
@@ -203,6 +228,8 @@ const isRunning = (workerName) => {
   return false;
 }
 
+const activeNotebooks = {}
 
 
-module.exports = { flushRedis, removeAllDockerContainers, listWorkers, containerActive, createNewWorker, getContainerByName, getContainerId, killContainer, restartContainer, isRunning, containerExists, workerRunning, startContainer, removeContainer }
+
+module.exports = { activeNotebooks, flushRedis, removeAllDockerContainers, listWorkers, containerActive, createNewWorker, getContainerByName, getContainerId, killContainer, restartContainer, isRunning, containerExists, workerRunning, startContainer, removeContainer }

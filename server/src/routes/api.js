@@ -7,9 +7,9 @@ const { setRedisHashkey, getField } = require('../utils/redisHelpers.js');
 
 const { basicDataCheck } = require('../utils/basicDataCheck.js');
 
-const { restartContainer, createNewWorker, startContainer, workerRunning, containerExists, killContainer } = require('../utils/workerManager.js');
+const { restartContainer, createNewWorker, startContainer, workerRunning, containerExists, killContainer, activeNotebooks } = require('../utils/workerManager.js');
 
-const activeNotebooks = {}
+// const activeNotebooks = activeNotebooks;
 
 function wait(ms) {
   var start = new Date().getTime();
@@ -107,6 +107,7 @@ router.post('/submit', async (req, res, next) => {
    timeouts[notebookId] = setTimeout(() => {
     // console.log('container killed')
     killContainer(`${notebookId}`)
+    delete activeNotebooks[notebookId];
     deleteQueue(notebookId);
    }, 1000*15*60)
    
