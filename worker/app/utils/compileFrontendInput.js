@@ -18,12 +18,13 @@ const replaceWithWhitespace = (codeContent, startIdx, endIdx) => {
   return codeContent.slice(0, startIdx) + whitespace + codeContent.slice(endIdx);
 }
 
+let currentVariables;
 const compileFrontendInput = (cell) => {
-  const scriptVariables = extractVariables(cell.code);
+  currentVariables = extractVariables(cell.code);
   let codeContentCopy = cell.code.slice();
 
-  for (let i = 0; i < scriptVariables.length; i++) {
-    const candidateVariable = scriptVariables[i];
+  for (let i = 0; i < currentVariables.length; i++) {
+    const candidateVariable = currentVariables[i];
     const exists = varDeclaredInThisCell(candidateVariable.name, cell.cellId);
 
     if (!exists) continue;
@@ -35,7 +36,7 @@ const compileFrontendInput = (cell) => {
       console.log('Doing nothing for now. Allow syntax error to be thrown.')
 
     } else if (declarationType === 'let') {
-      const [start, end] = findKeywordStartEndIdx(candidateVariable.name, scriptVariables);
+      const [start, end] = findKeywordStartEndIdx(candidateVariable.name, currentVariables);
 
       if (start === -1) {
         console.error(`Variable extraction did not produce keyword ${candidateVariable.name}`);
@@ -47,9 +48,13 @@ const compileFrontendInput = (cell) => {
 
   cell.code = codeContentCopy;
 
-  scriptVariables.forEach(variable => {
-    setVarInMap(variable.name, variable.type, cell.cellId);
-  })
 }
 
-module.exports = { compileFrontendInput };
+const setVariablesInMap = (cellId) => {
+  currentVariables.forEach(variable => {
+    setVarInMap(variable.name, variable.type, cellId);
+  });
+  currentVariables = [];
+}
+
+module.exports = { compileFrontendInput, setVariablesInMap};
