@@ -1,17 +1,13 @@
 const redis = require('redis');
-
-// const client = redis.createClient({
-// 	host: 'redis-server',
-// 	port: 6379
-// })
-
+const HOST = process.env.REDIS_HOST;
+const PORT = process.env.REDIS_PORT;
+console.log('Establishing connection to cache ', HOST, PORT);
 const client = redis.createClient({
-	legacyMode: true,
-	socket: {
-	// host: "127.0.0.1",
-	host: "redis-dredd",
-	port: 6379,
-	}
+  legacyMode: true,
+  socket: {
+    host: HOST,
+    port: PORT,
+  }
 });
 
 client.connect().then(
@@ -19,6 +15,6 @@ client.connect().then(
   client.on("error", (err) => {
     console.log("Error " + err);
   })
-  );
-  
-module.exports = {client};
+);
+
+module.exports = { client };

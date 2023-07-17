@@ -1,3 +1,5 @@
+const { QUEUE_HOST, QUEUE_PORT } = require("../config");
+
 const DEFAULT_QUEUE_NAME = 'jobs'
 var amqp = require('amqp-connection-manager');
 
@@ -5,9 +7,8 @@ let connection;
 let channel;
 let channelWrapper;
 
-// ! rabbit uri assumes server is running on localhost, not a container
 async function initializeConnection() {
-  connection = await amqp.connect(['amqp://localhost:5672']);
+  connection = await amqp.connect([`${QUEUE_HOST}:${QUEUE_PORT}`]);
   channel = await connection.createChannel();
 
   channelWrapper = connection.createChannel({

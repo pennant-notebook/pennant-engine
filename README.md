@@ -1,4 +1,6 @@
 # Dredd API
+v1.1.0: Previous state before merge of declaration to reassignment logic and resource cleanup 
+
 The 1.0.0 branch implements the code execution service as an EDA. Endpoints have not changed.
 
 Latest stable version is branch **v0.1.0**

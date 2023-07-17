@@ -1,4 +1,10 @@
-const NETWORK_NAME = 'dredd-network';
+const { NETWORK_NAME,
+  WORKER_QUEUE_HOST,
+  WORKER_QUEUE_PORT,
+  WORKER_REDIS_HOST,
+  WORKER_REDIS_PORT
+} = require('../config');
+
 const MEMORY_LIMIT = 100; // in mb;
 const SCRIPT_TIMEOUT_SECONDS = 8;
 
@@ -106,6 +112,10 @@ const createNewWorker = (notebookId) => {
   --network ${NETWORK_NAME} \
   -e QUEUE_NAME=${notebookId} \
   -e SCRIPT_TIMEOUT_S=${SCRIPT_TIMEOUT_SECONDS} \
+  -e QUEUE_HOST=${WORKER_QUEUE_HOST} \
+  -e QUEUE_PORT=${WORKER_QUEUE_PORT} \
+  -e REDIS_HOST=${WORKER_REDIS_HOST} \
+  -e REDIS_PORT=${WORKER_REDIS_PORT} \
   -v ./app \
   -w /app \
   node-worker`;
@@ -135,11 +145,6 @@ const containerActive = async (notebookId) => {
   return workerNames.map(workerName => workerName.split('.')[1]).includes(notebookId);
 };
 
-// List all containers, running or stopped
-const containerExists = async (notebookId) => {
-  const workerNames = await listWorkers({ all: true });
-  return workerNames.map(workerName => workerName.split('.')[1]).includes(notebookId);
-};
 
 const getContainerByName = async (workerName) => {
   return new Promise((resolve, reject) => {
@@ -154,6 +159,25 @@ const getContainerByName = async (workerName) => {
   })
 };
 
+const workerRunning = async (workerName) => {
+  const container = await getContainerByName(workerName);
+  if (!container) return false;
+  return container.State === 'running';
+}
+
+const workerStopped = async (workerName) => {
+  const container = await getContainerByName(workerName);
+  if (!container) return false;
+  return container.State === 'exited';
+}
+
+// List all containers, running or stopped
+const containerExists = async (notebookId) => {
+  const workerNames = await listWorkers({ all: true });
+  return workerNames.map(workerName => workerName.split('.')[1]).includes(notebookId);
+};
+
+
 const getContainerId = async (workerName) => {
   const container = await getContainerByName(workerName);
   if (!container) return null;
@@ -162,8 +186,8 @@ const getContainerId = async (workerName) => {
 
 const stopContainer = async (workerName) => {
   const id = await getContainerId(workerName);
-  if (!id) {
-    console.log(`Stopping container failed. Container not found/not active: /worker.${workerName}`);
+  if (!id || await workerStopped(workerName)) {
+    console.log(`Stopping container failed. Container not found/or already exited`);
     return null;
   };
   const container = docker.getContainer(id);
@@ -172,16 +196,17 @@ const stopContainer = async (workerName) => {
 
 const killContainer = async (workerName) => {
   const id = await getContainerId(workerName);
-  if (!id) {
-    console.log(`Killing container failed. Container not found/not active: /worker.${workerName}`);
+  if (!id || await workerStopped(workerName)) {
+    console.log(`Killing container failed. Container not found/or already exited`);
     return null;
   };
   const container = docker.getContainer(id);
   return container.kill();
 }
+
 const restartContainer = async (workerName) => {
   const id = await getContainerId(workerName);
-  if (!id) {
+  if (!id || await workerStopped(workerName)) {
     console.log(`Restarting container failed. Container not found/not active: /worker.${workerName}`);
     return null;
   };
@@ -191,19 +216,15 @@ const restartContainer = async (workerName) => {
 
 const startContainer = async (workerName) => {
   const id = await getContainerId(workerName);
-  if (!id) {
-    console.log(`Starting container failed. Container not found/not active: /worker.${workerName}`);
+
+  if (!id || await workerRunning(workerName)) {
+    console.log(`Starting container failed. Container either does not exist or is already running`);
     return null;
   };
   const container = docker.getContainer(id);
   return container.start();
 }
 
-const workerRunning = async (workerName) => {
-  const container = await getContainerByName(workerName);
-  if (!container) return false;
-  return container.State === 'running';
-}
 
 const removeContainer = async (workerName) => {
   console.log('workerName', workerName);
