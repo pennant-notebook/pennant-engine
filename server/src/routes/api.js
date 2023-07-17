@@ -7,9 +7,19 @@ const { setRedisHashkey, getField } = require('../utils/redisHelpers.js');
 
 const { basicDataCheck } = require('../utils/basicDataCheck.js');
 
-const { restartContainer, createNewWorker, startContainer, workerRunning, containerExists } = require('../utils/workerManager.js');
+const { restartContainer, createNewWorker, startContainer, workerRunning, containerExists, killContainer, activeNotebooks } = require('../utils/workerManager.js');
 
-const activeNotebooks = {}
+// const activeNotebooks = activeNotebooks;
+
+function wait(ms) {
+  var start = new Date().getTime();
+  var end = start;
+  while (end < start + ms) {
+    end = new Date().getTime();
+  }
+}
+const timeouts = {};
+
 
 const sendError = (res, error) => {
   const statusCode = error.statusCode || 500;
@@ -90,6 +100,17 @@ router.post('/submit', async (req, res, next) => {
     res.status(202).json({
       submissionId,
     });
+
+   if(timeouts[notebookId]) {
+    clearTimeout(timeouts[notebookId])
+   };
+   timeouts[notebookId] = setTimeout(() => {
+    // console.log('container killed')
+    killContainer(`${notebookId}`)
+    delete activeNotebooks[notebookId];
+    deleteQueue(notebookId);
+   }, 1000*15*60)
+   
   } catch (error) {
     console.log(error);
     if (thrown.yes) {
@@ -153,8 +174,7 @@ const statusCheckHandler = async (req, res) => {
       const notebookId = await getField(key, 'notebookId');
       await restartContainerHandler(notebookId);
 
-      res.status(202).send({ "status": "critical error", "message": "Your notebook environment has been reset. If you were changing already declared variables, and you believe that your logic is correct, run your code one more time and it should work." });
-
+      res.status(202).send({ "status": "critical error", "message": "Your notebook environment has been reset." });
     } else if (status === 'sent to queue' || status === 'pending') {
       console.log('sent to queue branch')
       res.status(202).send({ "status": "pending" });
