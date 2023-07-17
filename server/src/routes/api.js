@@ -105,8 +105,9 @@ router.post('/submit', async (req, res, next) => {
     clearTimeout(timeouts[notebookId])
    };
    timeouts[notebookId] = setTimeout(() => {
-    console.log('container killed')
+    // console.log('container killed')
     killContainer(`${notebookId}`)
+    deleteQueue(notebookId);
    }, 1000*15*60)
    
   } catch (error) {
