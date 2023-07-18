@@ -1,0 +1,29 @@
+config:
+  target: "http://localhost:3002/api"
+  phases:
+    - duration: 180
+      arrivalCount: 500
+  processor: "./processor.js"
+  plugins:
+    expect: {}
+scenarios:
+  - name: "Test submission and status endpoints"
+    flow:
+      - function: "generateRandomNotebookId"
+      - post:
+          url: "/submit"
+          json:
+            notebookId: "{{ notebookId }}"
+            cells:
+              - cellId: "2"
+                code: "console.log('hello world')"
+          expect:
+            - statusCode: 202
+          capture:
+            - json: "$.submissionId"
+              as: "submissionId"
+      - think: 10
+      - get:
+          url: "/status/{{ submissionId }}"
+          expect:
+            - statusCode: 200
