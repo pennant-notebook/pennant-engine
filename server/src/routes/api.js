@@ -56,7 +56,7 @@ const restartContainerHandler = async (notebookId) => {
     console.log('container restarted')
     return;
   } catch (error) {
-    sendError(res, error);
+    throw error;
   }
 }
 
