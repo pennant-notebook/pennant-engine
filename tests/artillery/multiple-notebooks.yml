@@ -2,7 +2,7 @@ config:
   target: 'http://localhost:3002/api'
   phases:
     - duration: 60
-      arrivalCount: 5
+      arrivalCount: 100
   processor: "./processor.js"
   plugins:
     expect: {}
@@ -18,7 +18,7 @@ scenarios:
               - cellId: '2'
                 code: "console.log('hello world')"
           expect:
-            - statusCode: 200
+            - statusCode: 202
           capture:
             - json: '$.submissionId'
               as: 'submissionId'
