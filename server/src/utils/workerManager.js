@@ -121,9 +121,12 @@ const listWorkers = (options) => {
     docker.listContainers(options, (err, containers) => {
       if (err) {
         reject(err);
+      } else if (!containers) {
+        resolve([]);
+      } else {
+        resolve(containers.map(container => container.Names[0])
+          .filter(workerName => /^\/worker/.test(workerName)));
       }
-      resolve(containers.map(container => container.Names[0])
-        .filter(workerName => /^\/worker/.test(workerName)));
     })
   })
 }
