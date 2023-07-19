@@ -11,4 +11,6 @@ module.exports = {
   WORKER_QUEUE_PORT: process.env.WORKER_QUEUE_PORT || 5672,
   WORKER_REDIS_HOST: process.env.WORKER_REDIS_HOST || "redis-dredd",
   WORKER_REDIS_PORT: process.env.WORKER_REDIS_PORT || 6379,
+  DOCKER_HOST: process.env.DOCKER_HOST || null,
+  DOCKER_PORT: process.env.DOCKER_PORT || null,
 }
