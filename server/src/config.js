@@ -3,7 +3,7 @@ require('dotenv').config();
 module.exports = {
   PORT: process.env.PORT || 3002,
   NETWORK_NAME: process.env.NETWORK_NAME || "dredd-network",
-  QUEUE_HOST: process.env.SERVER_QUEUE_HOST || "amqp://localhost",
+  QUEUE_HOST: "amqp://" + process.env.SERVER_QUEUE_HOST || "amqp://localhost",
   QUEUE_PORT: process.env.SERVER_QUEUE_PORT || 5672,
   REDIS_HOST: process.env.SERVER_QUEUE_HOST || "127.0.0.1",
   REDIS_PORT: process.env.SERVER_QUEUE_PORT || 6379,
