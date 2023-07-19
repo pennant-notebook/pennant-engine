@@ -67,28 +67,32 @@ router.post('/submit', async (req, res, next) => {
   let thrown = {};
 
   try {
+    console.log('made it to submit route')
     basicDataCheck(req, thrown);
     const { notebookId, cells } = req.body;
 
     const workerExists = await containerExists(notebookId);
     const workerActive = await workerRunning(notebookId);
     if (workerExists && !workerActive) {
+      console.log('thinks container exists')
       await deleteQueue(notebookId);
       await startContainer(notebookId);
     } else if (!activeNotebooks[notebookId] && !workerExists) {
       createNewWorker(notebookId);
+      console.log('made it past create new docker')
       activeNotebooks[notebookId] = true;
       //!replace with a sqL call to db
     }
     const data = { notebookId, cells }
     setupQueueForNoteBook(notebookId);
-
+    console.log('made it past rabbit queue setup')
     data.folder = randomBytes(10).toString('hex');
     const submissionId = data.folder.toString();
     createTimestamp(submissionId, 10000);
     console.log('apiRoutesReq.body', data)
 
     await sendMessage(data, notebookId);
+    console.log('made it past send message')
     await setRedisHashkey(submissionId, {
       status: 'pending',
       notebookId: notebookId,
@@ -96,11 +100,11 @@ router.post('/submit', async (req, res, next) => {
       timeProcessed: null,
       output: null,
     });
-
+    console.log('made it past set redis hashkey')
     res.status(202).json({
       submissionId,
     });
-
+    console.log('made it past status submission')
    if(timeouts[notebookId]) {
     clearTimeout(timeouts[notebookId])
    };
@@ -110,8 +114,9 @@ router.post('/submit', async (req, res, next) => {
     delete activeNotebooks[notebookId];
     deleteQueue(notebookId);
    }, 1000*15*60)
-   
+   console.log('made it to bottom of try block')
   } catch (error) {
+    console.log('made it to catch block')
     console.log(error);
     if (thrown.yes) {
       delete thrown.yes;
