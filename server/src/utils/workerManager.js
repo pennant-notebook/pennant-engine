@@ -163,6 +163,7 @@ const workerStopped = async (workerName) => {
 // List all containers, running or stopped
 const containerExists = async (notebookId) => {
   const workerNames = await listWorkers({ all: true }) || [];
+  console.log('workerNames', workerNames)
   return workerNames.map(workerName => workerName.split('.')[1]).includes(notebookId);
 };
 
