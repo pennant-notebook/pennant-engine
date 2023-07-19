@@ -69,10 +69,13 @@ router.post('/submit', async (req, res, next) => {
   try {
     console.log('made it to submit route')
     basicDataCheck(req, thrown);
+    console.log('made it past basic data check')
     const { notebookId, cells } = req.body;
-
+    console.log('made it past parsing')
     const workerExists = await containerExists(notebookId);
+    console.log('made it past worker exists check')
     const workerActive = await workerRunning(notebookId);
+    console.log('made it past worker active check')
     if (workerExists && !workerActive) {
       console.log('thinks container exists')
       await deleteQueue(notebookId);
@@ -84,6 +87,7 @@ router.post('/submit', async (req, res, next) => {
       //!replace with a sqL call to db
     }
     const data = { notebookId, cells }
+    console.log('made it to rabbit queue setup')
     setupQueueForNoteBook(notebookId);
     console.log('made it past rabbit queue setup')
     data.folder = randomBytes(10).toString('hex');
