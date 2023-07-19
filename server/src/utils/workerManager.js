@@ -70,61 +70,46 @@ const flushRedis = () => {
 }
 
 const removeAllDockerContainers = async () => {
-  await listWorkers({all: true}).then((containers) => {
+  await listWorkers({ all: true }).then((containers) => {
     console.log('containers', containers);
     containers.forEach(id => {
       removeContainer(id.slice(8));
-})
-}).then(() => {for (var member in activeNotebooks) delete activeNotebooks[member];})
-
-      // console.log('id', id);
-      // const container = docker.getContainer(id).then(() =>{
-      // console.log('container', container);
-      // }).then(() => {
-      //   return container.remove();
-      // })
-      // ;
-
-
-      // console.log(container);
-      // return container.remove();
-      // container.remove({
-      //   force: true
-      //  })
-   
-  // terminalInterface.send('cd ..')
-  // terminalInterface.send('pwd');
-  // terminalInterface.send(`docker stop $(docker ps -a | grep -v "redis-dredd" | grep -v "rabbitmq-dredd" | cut -d ' ' -f1)`);
-  
-  // wait(3000*60)
-  // terminalInterface.send(`docker rm $(docker ps -a | grep -v "redis-dredd" | grep -v "rabbitmq-dredd" | cut -d ' ' -f1)`);
-
+    })
+  }).then(() => { for (var member in activeNotebooks) delete activeNotebooks[member]; })
 }
 
-const createNewWorker = (notebookId) => {
-  console.log('Deploying new worker for notebookId: ', notebookId);
-  console.log(`Memory limit is ${MEMORY_LIMIT}mb`);
-  console.log(`Script timeout is ${SCRIPT_TIMEOUT_SECONDS} seconds`);
-
-  const DOCKER_RUN_CMD = `docker run -d \
-  -m ${MEMORY_LIMIT}m --memory-swap ${MEMORY_LIMIT}m \
-  --name worker.${notebookId} \
-  --network ${NETWORK_NAME} \
-  -e QUEUE_NAME=${notebookId} \
-  -e SCRIPT_TIMEOUT_S=${SCRIPT_TIMEOUT_SECONDS} \
-  -e QUEUE_HOST=${WORKER_QUEUE_HOST} \
-  -e QUEUE_PORT=${WORKER_QUEUE_PORT} \
-  -e REDIS_HOST=${WORKER_REDIS_HOST} \
-  -e REDIS_PORT=${WORKER_REDIS_PORT} \
-  -v ./app \
-  -w /app \
-  node-worker`;
-
-  terminalInterface.send('cd ../worker')
-  terminalInterface.send('pwd');
-  wait(10);  //.01 seconds in milliseconds
-  terminalInterface.send(DOCKER_RUN_CMD);
-  wait(10);  //.01 seconds in milliseconds
+const createNewWorker = async (notebookId) => {
+  console.log('the new create nodeworker')
+  try {
+    const container = await docker.createContainer({
+      Image: 'node-worker',
+      name: `worker.${notebookId}`,
+      HostConfig: {
+        Memory: MEMORY_LIMIT * 1024 * 1024,
+        MemorySwap: MEMORY_LIMIT * 1024 * 1024,
+        NetworkMode: NETWORK_NAME,
+      },
+      Env: [
+        `QUEUE_NAME=${notebookId}`,
+        `SCRIPT_TIMEOUT_S=${SCRIPT_TIMEOUT_SECONDS}`,
+        `QUEUE_HOST=${WORKER_QUEUE_HOST}`,
+        `QUEUE_PORT=${WORKER_QUEUE_PORT}`,
+        `REDIS_HOST=${WORKER_REDIS_HOST}`,
+        `REDIS_PORT=${WORKER_REDIS_PORT}`
+      ],
+      WorkingDir: '/app',
+      AttachStdin: false,
+      AttachStdout: true,
+      AttachStderr: true,
+      Tty: true,
+      OpenStdin: true,
+      StdinOnce: false
+    }
+    )
+    container.start();
+  } catch (error) {
+    console.log('error while creating container', error);
+  }
 }
 
 const listWorkers = (options) => {
@@ -235,7 +220,7 @@ const removeContainer = async (workerName) => {
     return null;
   };
   const container = docker.getContainer(id);
-  return container.remove({force: true});
+  return container.remove({ force: true });
 }
 
 // TODO
