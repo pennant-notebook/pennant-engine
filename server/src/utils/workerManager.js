@@ -126,12 +126,12 @@ const listWorkers = (options) => {
     // }
     docker.listContainers(options, (err, containers) => {
         if (err) {
-          resolve([]);
-        // reject(err);
+          // resolve([]);
+        reject(err);
       } else {
-        if (containers.length === 0) {
-          resolve([]);
-        }
+        // if (containers.length === 0) {
+        //   resolve([]);
+        // }
         resolve(containers.map(container => container.Names[0])
           .filter(workerName => /^\/worker/.test(workerName)));
       }
