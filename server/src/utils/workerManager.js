@@ -119,7 +119,7 @@ const createNewWorker = async (notebookId) => {
 const listWorkers = (options) => {
   console.log('made it to list workers');
   try{
-    setTimeout(() => {throw 'error'}, 1000)
+    setTimeout(() => {error}, 1000)
   // console.log();
   return new Promise((resolve, reject) => {
     // if (!containers) {
