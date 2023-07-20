@@ -116,28 +116,50 @@ const createNewWorker = async (notebookId) => {
   }
 }
 
-const listWorkers = (options) => {
-  console.log('made it to list workers', 'containers', containers);
-  // console.log();
-  return new Promise((resolve, reject) => {
-    docker.listContainers(options, (err, containers) => {
-      if (!containers) {
-        console.log('made it to no containers')
-        resolve([]);
-      } else if (err) {
-        if (!containers) {
-          console.log('made it to no containers')
-          resolve([]);
-        }else {
-        reject(err);
-        }
-      } else {
-        resolve(containers.map(container => container.Names[0])
-          .filter(workerName => /^\/worker/.test(workerName)));
-      }
-    })
-  })
+// const listWorkers = (options) => {
+//   console.log('made it to list workers');
+//   // console.log();
+//   return new Promise((resolve, reject) => {
+//     if (!containers) {
+//       console.log('made it to no containers')
+//       resolve([]);
+//     }
+//     docker.listContainers(options, (err, containers) => {
+//         if (err) {
+//         reject(err);
+//       } else {
+//         resolve(containers.map(container => container.Names[0])
+//           .filter(workerName => /^\/worker/.test(workerName)));
+//       }
+//     })
+//   })
+// }
+
+const listWorkers = async() => {
+  try {
+    console.log('made it to listWorkers')
+    // List containers using Dockerode
+    const containers = await docker.listContainers();
+
+    // Check if the containers array is empty, if yes, return an empty array []
+    if (containers.length === 0) {
+      return [];
+    }
+
+    // Process the list of containers or return it as needed
+    return containers;
+  } catch (err) {
+    // Handle errors if necessary
+    console.error('Error listing containers:', err);
+    return [];
+  }
 }
+
+
+
+
+
+
 
 // Lists all running containers
 const containerActive = async (notebookId) => {
@@ -173,7 +195,8 @@ const workerStopped = async (workerName) => {
 
 // List all containers, running or stopped
 const containerExists = async (notebookId) => {
-  const workerNames = await listWorkers({ all: true });
+  // const workerNames = await listWorkers({ all: true });
+  const workerNames = await listWorkers();
   console.log('workerNames', workerNames)
   return workerNames.map(workerName => workerName.split('.')[1]).includes(notebookId);
 };
