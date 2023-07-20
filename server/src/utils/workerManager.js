@@ -121,12 +121,13 @@ const listWorkers = (options) => {
   return new Promise((resolve, reject) => {
     docker.listContainers(options, (err, containers) => {
       if (err) {
-        console.log('made it to err')
+        reject(err);
+      } else if (!containers) {
         resolve([]);
-        // reject(err);
+      } else {
+        resolve(containers.map(container => container.Names[0])
+          .filter(workerName => /^\/worker/.test(workerName)));
       }
-      resolve(containers.map(container => container.Names[0])
-        .filter(workerName => /^\/worker/.test(workerName)));
     })
   })
 }
