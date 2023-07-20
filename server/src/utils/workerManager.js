@@ -120,10 +120,10 @@ const listWorkers = (options) => {
   console.log('made it to list workers');
   // console.log();
   return new Promise((resolve, reject) => {
-    if (!containers) {
-      console.log('made it to no containers')
-      resolve([]);
-    }
+    // if (!containers) {
+    //   console.log('made it to no containers')
+    //   resolve([]);
+    // }
     docker.listContainers(options, (err, containers) => {
         if (err) {
           resolve([]);
