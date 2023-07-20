@@ -125,7 +125,12 @@ const listWorkers = (options) => {
         console.log('made it to no containers')
         resolve([]);
       } else if (err) {
+        if (!containers) {
+          console.log('made it to no containers')
+          resolve([]);
+        }else {
         reject(err);
+        }
       } else {
         resolve(containers.map(container => container.Names[0])
           .filter(workerName => /^\/worker/.test(workerName)));
