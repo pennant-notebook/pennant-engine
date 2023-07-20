@@ -129,6 +129,9 @@ const listWorkers = (options) => {
           resolve([]);
         // reject(err);
       } else {
+        if (containers.length === 0) {
+          resolve([]);
+        }
         resolve(containers.map(container => container.Names[0])
           .filter(workerName => /^\/worker/.test(workerName)));
       }
