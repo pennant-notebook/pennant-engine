@@ -116,44 +116,45 @@ const createNewWorker = async (notebookId) => {
   }
 }
 
-// const listWorkers = (options) => {
-//   console.log('made it to list workers');
-//   // console.log();
-//   return new Promise((resolve, reject) => {
-//     if (!containers) {
-//       console.log('made it to no containers')
-//       resolve([]);
-//     }
-//     docker.listContainers(options, (err, containers) => {
-//         if (err) {
-//         reject(err);
-//       } else {
-//         resolve(containers.map(container => container.Names[0])
-//           .filter(workerName => /^\/worker/.test(workerName)));
-//       }
-//     })
-//   })
-// }
-
-const listWorkers = async() => {
-  try {
-    console.log('made it to listWorkers')
-    // List containers using Dockerode
-    const containers = await docker.listContainers();
-
-    // Check if the containers array is empty, if yes, return an empty array []
-    if (containers.length === 0) {
-      return [];
+const listWorkers = (options) => {
+  console.log('made it to list workers');
+  // console.log();
+  return new Promise((resolve, reject) => {
+    if (!containers) {
+      console.log('made it to no containers')
+      resolve([]);
     }
-
-    // Process the list of containers or return it as needed
-    return containers;
-  } catch (err) {
-    // Handle errors if necessary
-    console.error('Error listing containers:', err);
-    return [];
-  }
+    docker.listContainers(options, (err, containers) => {
+        if (err) {
+          resolve([]);
+        // reject(err);
+      } else {
+        resolve(containers.map(container => container.Names[0])
+          .filter(workerName => /^\/worker/.test(workerName)));
+      }
+    })
+  })
 }
+
+// const listWorkers = async() => {
+//   try {
+//     console.log('made it to listWorkers')
+//     // List containers using Dockerode
+//     const containers = await docker.listContainers();
+//     console.log('made it through containers')
+//     // Check if the containers array is empty, if yes, return an empty array []
+//     if (containers.length === 0) {
+//       return [];
+//     }
+
+//     // Process the list of containers or return it as needed
+//     return containers;
+//   } catch (err) {
+//     // Handle errors if necessary
+//     console.error('Error listing containers:', err);
+//     return [];
+//   }
+// }
 
 
 
