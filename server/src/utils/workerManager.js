@@ -123,6 +123,7 @@ const listWorkers = (options) => {
       if (err) {
         reject(err);
       } else if (!containers) {
+        console.log('made it to no containers')
         resolve([]);
       } else {
         resolve(containers.map(container => container.Names[0])
@@ -166,7 +167,7 @@ const workerStopped = async (workerName) => {
 
 // List all containers, running or stopped
 const containerExists = async (notebookId) => {
-  const workerNames = await listWorkers({ all: true }) || [];
+  const workerNames = await listWorkers({ all: true });
   console.log('workerNames', workerNames)
   return workerNames.map(workerName => workerName.split('.')[1]).includes(notebookId);
 };
