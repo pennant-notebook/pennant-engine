@@ -118,6 +118,7 @@ const createNewWorker = async (notebookId) => {
 
 const listWorkers = (options) => {
   console.log('made it to list workers')
+  console.log('containers', containers);
   return new Promise((resolve, reject) => {
     docker.listContainers(options, (err, containers) => {
       if (err) {
