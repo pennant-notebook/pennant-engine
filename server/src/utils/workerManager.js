@@ -118,6 +118,8 @@ const createNewWorker = async (notebookId) => {
 
 const listWorkers = (options) => {
   console.log('made it to list workers');
+  try{
+    setTimeout(() => {throw 'error'}, 1000)
   // console.log();
   return new Promise((resolve, reject) => {
     // if (!containers) {
@@ -126,17 +128,20 @@ const listWorkers = (options) => {
     // }
     docker.listContainers(options, (err, containers) => {
         if (err) {
-          // resolve([]);
-        reject(err);
+          resolve([]);
+        // reject(err);
       } else {
-        // if (containers.length === 0) {
-        //   resolve([]);
-        // }
+        if (containers.length === 0) {
+          resolve([]);
+        }
         resolve(containers.map(container => container.Names[0])
           .filter(workerName => /^\/worker/.test(workerName)));
       }
     })
   })
+} catch (err) {
+  return([]);
+}
 }
 
 // const listWorkers = async() => {
@@ -186,6 +191,7 @@ const getContainerByName = async (workerName) => {
 };
 
 const workerRunning = async (workerName) => {
+  console.log('made it to workerRunning')
   const container = await getContainerByName(workerName);
   if (!container) return false;
   return container.State === 'running';
