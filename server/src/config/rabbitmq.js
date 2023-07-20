@@ -62,7 +62,7 @@ const deleteQueue = async (queueName) => {
 (async () => {
   await initializeConnection();
   connection.on('connect', function () {
-    console.log('Connected!');
+    console.log('Connected! to rabbit');
   });
   connection.on('disconnect', function (err) {
     console.log('Disconnected.', err);
