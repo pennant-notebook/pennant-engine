@@ -74,7 +74,10 @@ router.post('/submit', async (req, res, next) => {
     console.log('made it past parsing')
     const workerExists = await containerExists(notebookId);
     console.log('made it past worker exists check')
-    const workerActive = await workerRunning(notebookId);
+    let workerActive;
+    if (workerExists) {
+    workerActive = await workerRunning(notebookId);
+    }
     console.log('made it past worker active check')
     if (workerExists && !workerActive) {
       console.log('thinks container exists')
