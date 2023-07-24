@@ -7,9 +7,8 @@ const { setRedisHashkey, getField } = require('../utils/redisHelpers.js');
 
 const { basicDataCheck } = require('../utils/basicDataCheck.js');
 
-const { restartContainer, createNewWorker, startContainer, workerRunning, containerExists, killContainer, activeNotebooks } = require('../utils/workerManager.js');
+const { restartContainer, createNewWorker, startContainer, workerRunning, containerExists, killContainer } = require('../utils/workerManager.js');
 
-// const activeNotebooks = activeNotebooks;
 
 function wait(ms) {
   var start = new Date().getTime();
@@ -75,9 +74,8 @@ router.post('/submit', async (req, res, next) => {
     if (workerExists && !workerActive) {
       await deleteQueue(notebookId);
       await startContainer(notebookId);
-    } else if (!activeNotebooks[notebookId] && !workerExists) {
+    } else if (!workerExists) {
       createNewWorker(notebookId);
-      activeNotebooks[notebookId] = true;
       //!replace with a sqL call to db
     }
     const data = { notebookId, cells }
@@ -107,7 +105,6 @@ router.post('/submit', async (req, res, next) => {
    timeouts[notebookId] = setTimeout(() => {
     // console.log('container killed')
     killContainer(`${notebookId}`)
-    delete activeNotebooks[notebookId];
     deleteQueue(notebookId);
    }, 1000*15*60)
    
@@ -176,7 +173,7 @@ const statusCheckHandler = async (req, res) => {
 
       res.status(202).send({ "status": "critical error", "message": "Your notebook environment has been reset." });
     } else if (status === 'sent to queue' || status === 'pending') {
-      console.log('sent to queue branch')
+
       res.status(202).send({ "status": "pending" });
     }
     else if (status == 'Processing') {
