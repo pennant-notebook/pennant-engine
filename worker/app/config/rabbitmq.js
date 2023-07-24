@@ -8,6 +8,7 @@ const QUEUE_PORT = process.env.QUEUE_PORT;
 const WORKER_IDLE_TIMEOUT = process.env.WORKER_IDLE_TIMEOUT_M * 60 * 1000 ||
   15 * 60 * 1000; // 15 minutes default
 
+
 console.log("Establishing connection to broker ", QUEUE_HOST, QUEUE_PORT);
 console.log("Queue name is: ", QUEUE_NAME);
 const connection = amqp.connect([`${QUEUE_HOST}:${QUEUE_PORT}`]);
@@ -54,6 +55,8 @@ const channelWrapper = connection.createChannel({
     ]);
   }
 });
+
+resetTimer();
 
 const listenMessage = async (data) => {
   channelWrapper.waitForConnect()
