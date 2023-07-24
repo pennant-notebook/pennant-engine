@@ -2,7 +2,7 @@ const router = require('express').Router();
 const { randomBytes } = require('crypto');
 const { sendMessage, setupQueueForNoteBook, deleteQueue } = require('../config/rabbitmq.js');
 const { errorResponse } = require('../utils/responses.js');
-const { createTimestamp, exceedsTimeout } = require('../utils/executionTimeout.js');
+const { timeoutExceeded } = require('../utils/executionTimeout.js');
 const { setRedisHashkey, getField } = require('../utils/redisHelpers.js');
 
 const { basicDataCheck } = require('../utils/basicDataCheck.js');
@@ -83,7 +83,6 @@ router.post('/submit', async (req, res, next) => {
 
     data.folder = randomBytes(10).toString('hex');
     const submissionId = data.folder.toString();
-    createTimestamp(submissionId, 10000);
     console.log('apiRoutesReq.body', data)
 
     await sendMessage(data, notebookId);
@@ -155,6 +154,7 @@ const statusCheckHandler = async (req, res) => {
     let key = req.params.id;
 
     const status = await getField(key, 'status');
+    const requestTime = await getField(key, 'timeRequested');
 
     if (!status) {
       throw createError('Submission ID does not exist', 404);
@@ -162,12 +162,9 @@ const statusCheckHandler = async (req, res) => {
 
     const output = await getField(key, 'output');
 
-    if ([null, 'sent to queue', 'pending'].includes(status) && exceedsTimeout(key)) {
-
+    if ([null, 'sent to queue', 'pending'].includes(status) && timeoutExceeded(requestTime)) {
+      
       console.log('exceeded timeout context reset')
-      //TODO create a spindown worker?
-      //TODO call it
-      //TODO call createNewWorker()
       const notebookId = await getField(key, 'notebookId');
       await restartContainerHandler(notebookId);
 

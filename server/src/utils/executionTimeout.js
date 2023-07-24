@@ -1,5 +1,5 @@
 const submissionIdTimeCreated = {};
-const DEFAULT_TIMEOUT = 100000 // 10 seconds;
+const DEFAULT_TIMEOUT = 10000 // 10 seconds;
 
 // ! This is in memory only. If the server restarts, all the timestamps will be lost.
 const getTimestamp = (submissionId) => {
@@ -17,10 +17,14 @@ const elapsedTime = (submissionId) => {
   return Date.now() - startTime;
 }
 
-const exceedsTimeout = (submissionId) => {
+const submissionTimeoutExceeded = (submissionId) => {
   const startTime = getTimestamp(submissionId);
   if (!startTime) return true;
   return elapsedTime(submissionId) > submissionIdTimeCreated[submissionId].timeout;
 }
 
-module.exports = { exceedsTimeout, createTimestamp };
+const timeoutExceeded = (time, timeout = DEFAULT_TIMEOUT) => {
+  return Number(Date.now() - time) > Number(timeout);
+}
+
+module.exports = { submissionTimeoutExceeded, createTimestamp, timeoutExceeded };
