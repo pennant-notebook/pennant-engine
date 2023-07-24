@@ -17,7 +17,6 @@ function wait(ms) {
     end = new Date().getTime();
   }
 }
-const timeouts = {};
 
 
 const sendError = (res, error) => {
@@ -97,15 +96,6 @@ router.post('/submit', async (req, res, next) => {
     res.status(202).json({
       submissionId,
     });
-
-   if(timeouts[notebookId]) {
-    clearTimeout(timeouts[notebookId])
-   };
-   timeouts[notebookId] = setTimeout(() => {
-    // console.log('container killed')
-    killContainer(`${notebookId}`)
-    deleteQueue(notebookId);
-   }, 1000*15*60)
    
   } catch (error) {
     console.log(error);
