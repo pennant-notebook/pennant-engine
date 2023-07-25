@@ -6,6 +6,7 @@ const { NETWORK_NAME,
   DOCKER_HOST,
   DOCKER_PORT,
   WORKER_IDLE_TIMEOUT_M,
+  REDIS_PASSWORD,
 } = require('../config');
 
 const MEMORY_LIMIT = 100; // in mb;
@@ -102,6 +103,7 @@ const createNewWorker = async (notebookId) => {
         `REDIS_HOST=${WORKER_REDIS_HOST}`,
         `REDIS_PORT=${WORKER_REDIS_PORT}`,
         `WORKER_IDLE_TIMEOUT_M=${WORKER_IDLE_TIMEOUT_M}}`,
+        `REDIS_PASSWORD=${REDIS_PASSWORD}`,
       ],
       WorkingDir: '/app',
       AttachStdin: false,

@@ -8,6 +8,7 @@ module.exports = {
   QUEUE_PORT: process.env.SERVER_QUEUE_PORT || 5672,
   REDIS_HOST: process.env.SERVER_QUEUE_HOST || "127.0.0.1",
   REDIS_PORT: process.env.SERVER_QUEUE_PORT || 6379,
+  REDIS_PASSWORD: process.env.REDIS_PASSWORD || "",
   WORKER_QUEUE_HOST: process.env.WORKER_QUEUE_HOST || "amqp://rabbitmq-dredd",
   WORKER_QUEUE_PORT: process.env.WORKER_QUEUE_PORT || 5672,
   WORKER_REDIS_HOST: process.env.WORKER_REDIS_HOST || "redis-dredd",

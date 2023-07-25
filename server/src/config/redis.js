@@ -1,4 +1,4 @@
-const { REDIS_HOST, REDIS_PORT } = require("../config");
+const { REDIS_HOST, REDIS_PORT, REDIS_PASSWORD } = require("../config");
 const redis = require("redis");
 
 const client = redis.createClient({
@@ -9,7 +9,8 @@ const client = redis.createClient({
     // ! When running server on host machine, use 127.0.0.1
     host: REDIS_HOST,
     port: REDIS_PORT,
-  }
+  },
+  password: REDIS_PASSWORD,
 });
 
 client.connect().then(

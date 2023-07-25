@@ -2,6 +2,7 @@ version: "2.3" #Use this version strictly
 services:
   redis-dredd:
     image: redis
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     container_name: redis-dredd
     restart: always
     ports:
