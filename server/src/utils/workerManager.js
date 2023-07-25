@@ -2,14 +2,21 @@ const { NETWORK_NAME,
   WORKER_QUEUE_HOST,
   WORKER_QUEUE_PORT,
   WORKER_REDIS_HOST,
-  WORKER_REDIS_PORT
+  WORKER_REDIS_PORT,
+  DOCKER_HOST,
+  DOCKER_PORT,
+  WORKER_IDLE_TIMEOUT_M,
 } = require('../config');
 
 const MEMORY_LIMIT = 100; // in mb;
 const SCRIPT_TIMEOUT_SECONDS = 8;
 
 const Docker = require('dockerode');
-const docker = new Docker();
+const dockerOptions = DOCKER_HOST ? {
+  host: DOCKER_HOST, port: DOCKER_PORT
+} : {};
+
+const docker = new Docker(dockerOptions);
 const fs = require('fs');
 const child_process = require('child_process');
 const { deleteQueue } = require('../config/rabbitmq');
@@ -50,7 +57,6 @@ terminalInterface.terminal.on('close', () => {
 });
 
 //USE INTERFACE
-//! spin up another docker worker here
 terminalInterface.handler = (output) => {
   let data = '';
   if (output.data) data += ': ' + output.data.toString();
@@ -79,7 +85,6 @@ const removeAllDockerContainers = async () => {
 }
 
 const createNewWorker = async (notebookId) => {
-  console.log('the new create nodeworker')
   try {
     const container = await docker.createContainer({
       Image: 'node-worker',
@@ -95,7 +100,8 @@ const createNewWorker = async (notebookId) => {
         `QUEUE_HOST=${WORKER_QUEUE_HOST}`,
         `QUEUE_PORT=${WORKER_QUEUE_PORT}`,
         `REDIS_HOST=${WORKER_REDIS_HOST}`,
-        `REDIS_PORT=${WORKER_REDIS_PORT}`
+        `REDIS_PORT=${WORKER_REDIS_PORT}`,
+        `WORKER_IDLE_TIMEOUT_M=${WORKER_IDLE_TIMEOUT_M}}`,
       ],
       WorkingDir: '/app',
       AttachStdin: false,
@@ -117,9 +123,12 @@ const listWorkers = (options) => {
     docker.listContainers(options, (err, containers) => {
       if (err) {
         reject(err);
+      } else if (!containers) {
+        resolve([]);
+      } else {
+        resolve(containers.map(container => container.Names[0])
+          .filter(workerName => /^\/worker/.test(workerName)));
       }
-      resolve(containers.map(container => container.Names[0])
-        .filter(workerName => /^\/worker/.test(workerName)));
     })
   })
 }
