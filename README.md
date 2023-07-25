@@ -1,4 +1,7 @@
 # Dredd API
+
+v1.3.0: Distributed architecture separating API server from docker host.
+
 v1.2.0: Revised declaration to reassignment & container cleanup. Pre-functional partitioning of API server and docker host.
 
 v1.1.0: Previous state before merge of declaration to reassignment logic and resource cleanup 
