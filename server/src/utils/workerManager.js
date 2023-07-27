@@ -94,6 +94,9 @@ const createNewWorker = async (notebookId) => {
         Memory: MEMORY_LIMIT * 1024 * 1024,
         MemorySwap: MEMORY_LIMIT * 1024 * 1024,
         NetworkMode: NETWORK_NAME,
+        CapDrop: ['ALL'],
+        SecurityOpt: ['no-new-privileges'],
+        ReadonlyRootfs: true,
       },
       Env: [
         `QUEUE_NAME=${notebookId}`,
@@ -119,6 +122,8 @@ const createNewWorker = async (notebookId) => {
     console.log('error while creating container', error);
   }
 }
+
+
 
 const listWorkers = (options) => {
   return new Promise((resolve, reject) => {
@@ -249,4 +254,4 @@ const activeNotebooks = {}
 
 
 
-module.exports = { activeNotebooks, flushRedis, removeAllDockerContainers, listWorkers, containerActive, createNewWorker, getContainerByName, getContainerId, killContainer, restartContainer, isRunning, containerExists, workerRunning, startContainer, removeContainer }
+module.exports = {  activeNotebooks, flushRedis, removeAllDockerContainers, listWorkers, containerActive, createNewWorker, getContainerByName, getContainerId, killContainer, restartContainer, isRunning, containerExists, workerRunning, startContainer, removeContainer }
