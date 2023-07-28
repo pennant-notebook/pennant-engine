@@ -62,10 +62,10 @@ const deleteQueue = async (queueName) => {
 (async () => {
   await initializeConnection();
   connection.on('connect', function () {
-    console.log('Connected!');
+    console.log('Connected to broker!');
   });
   connection.on('disconnect', function (err) {
-    console.log('Disconnected.', err);
+    console.log('Disconnected from broker.', err);
   });
 
 })();
