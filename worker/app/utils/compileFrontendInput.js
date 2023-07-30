@@ -1,4 +1,4 @@
-const { resetContext, getVariableMap, getCellsRun, getDeclaredAt, getChangedVariables, updateVariableMap, updateCellsRun, updateDeclaredAt, updateChangedVariables, varDeclaredInThisCell, typeofDeclaration, setVarInMap, getVarMapV2 } = require('./context');
+const {varDeclaredInThisCell, typeofDeclaration, setVarInMap } = require('./varMap');
 const { extractVariables } = require("./extractVariables");
 
 const findKeywordStartEndIdx = (variableName, cellVariables) => {
