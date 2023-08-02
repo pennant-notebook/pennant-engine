@@ -71,6 +71,7 @@ const executeCode = async (submissionId, cellId, code) => {
   } catch (error) {
     arr.push(String(error));
     isSyntaxOrRuntimeError = true;
+    throw error;
 
   } finally {
     updateSubmissionOutput(submissionId, cellId, isSyntaxOrRuntimeError, arr.join(''));
