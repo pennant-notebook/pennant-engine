@@ -31,22 +31,30 @@ const vm = new VM({
 });
 
 const engine = async (apiBody, ch, msg) => {
+  const submissionId = apiBody.folder;
   console.log('apiBody', apiBody)
 
   console.log('engineProcessing')
-  initializeSubmissionOutput(apiBody.folder, ...apiBody.cells)
+  initializeSubmissionOutput(submissionId, ...apiBody.cells)
   ch.ack(msg);
 
   for (let cell of apiBody.cells) {
     try {
       compileFrontendInput(cell, apiBody.notebookId);
-      executeCode(apiBody.folder, cell.cellId, cell.code, apiBody.notebookId);
+      await executeCode(submissionId, cell.cellId, cell.code, apiBody.notebookId);
 
     } catch (error) {
       console.error("running cells raised an error: ", error);
       break;
     }
   }
+  const output = getSubmissionOutput(submissionId)
+
+  await setRedisHashkey(submissionId.toString(), {
+    status: 'success',
+    timeProcessed: Date.now(),
+    output: output,
+  });
 }
 
 const executeCode = async (submissionId, cellId, code) => {
@@ -63,16 +71,10 @@ const executeCode = async (submissionId, cellId, code) => {
   } catch (error) {
     arr.push(String(error));
     isSyntaxOrRuntimeError = true;
+    throw error;
 
   } finally {
     updateSubmissionOutput(submissionId, cellId, isSyntaxOrRuntimeError, arr.join(''));
-    const output = getSubmissionOutput(submissionId)
-
-    await setRedisHashkey(submissionId.toString(), {
-      status: 'success',
-      timeProcessed: Date.now(),
-      output: output,
-    });
   }
 }
 
