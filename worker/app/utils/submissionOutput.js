@@ -43,7 +43,7 @@ const updateSubmissionOutput = (submissionId, cellId, isError, output) => {
     {
       cellId,
       type: isError ? 'error' : 'output',
-      output,
+      output: output || 'undefined',
     }
   )
 
