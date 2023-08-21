@@ -1,5 +1,7 @@
 # Dredd API
+
 Application can be accessed at : www.trypennant.com
+
 v1.3.0-deployment: Adds security features. Not recommended as a base for development since it requires configuration of secrets
 
 v1.3.0: Distributed architecture separating API server from docker host.
