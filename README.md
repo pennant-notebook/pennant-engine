@@ -1,3 +1,5 @@
+This repository contains the remote code execution engine for the pennant-notebook project.
+
 # Dredd API
 
 Application can be accessed at : www.trypennant.com
