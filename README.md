@@ -78,7 +78,7 @@ Property | Type | Description
 Property | Type | Description
 --- | --- | ---
 `cellId` | `string` |
-`type` | `string` | `output` or `error`
+`type` | `string` | `output`, `error` or `critical`
 `output` | `string` | Console output string or stack trace
 
 ### Reset Notebook Context
