@@ -69,7 +69,8 @@ const executeCode = async (submissionId, cellId, code) => {
     arr.push(result);
 
   } catch (error) {
-    arr.push(String(error));
+    // arr.push(String(error));
+    arr.push(String(error.stack));
     isSyntaxOrRuntimeError = true;
     throw error;
 
