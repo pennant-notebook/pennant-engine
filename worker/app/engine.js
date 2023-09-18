@@ -59,7 +59,8 @@ const executeCode = async (submissionId, cellId, code, notebookId) => {
     setVariablesInMap(cellId);
     updateContextWrapper(notebookId);
   } catch (error) {
-    arr.push(String(error));
+    // arr.push(String(error));
+    arr.push(String(error.stack));
     isSyntaxOrRuntimeError = true;
   } finally {
     writableStream.end();
