@@ -1,0 +1,3 @@
+[submodule "python-server"]
+	path = python-server
+	url = https://github.com/marwan37/pennant-flask-server
