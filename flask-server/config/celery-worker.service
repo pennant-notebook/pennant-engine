@@ -1,0 +1,12 @@
+[Unit]
+Description=Celery Worker
+After=network.target
+
+[Service]
+EnvironmentFile=/HOME/pennant-flask-server/.env
+WorkingDirectory=/HOME/pennant-flask-server/
+ExecStart=/HOME/pennant-flask-server/venv/bin/celery -A app.celery worker
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
