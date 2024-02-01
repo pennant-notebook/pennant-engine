@@ -16,6 +16,7 @@
   "overrides": {
     "postcss": ">=8.4.31",
     "axios": ">=1.6.0",
-    "follow-redirects": ">=1.15.4"
+    "follow-redirects": ">=1.15.4",
+    "semver": ">=7.5.2"
   }
 }
