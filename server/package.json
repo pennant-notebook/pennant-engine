@@ -25,5 +25,9 @@
   },
   "devDependencies": {
     "nodemon": "^2.0.22"
+  },
+  "overrides": {
+    "semver": ">=7.5.2"
   }
+
 }
